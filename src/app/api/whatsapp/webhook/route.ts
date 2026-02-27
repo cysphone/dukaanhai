@@ -93,16 +93,18 @@ export async function POST(req: NextRequest) {
 
         // Create business (async)
         createBusinessFromWhatsApp(phoneNumber, collectedData).then(async (storeUrl) => {
+          const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://dukaanhai.com';
           await sendWhatsAppMessage(
             phoneNumber,
-            `🎉 *Badhai ho! Aapka store ready hai!*\n\n🔗 *Store Link:* ${storeUrl}\n\nAbhi share karo apne customers ke saath! 🚀\n\n_Dashboard ke liye visit karo:_ dukaanhai.com/login`
+            `🎉 *Badhai ho! Aapka store ready hai!*\n\n🔗 *Store Link:* ${storeUrl}\n\nAbhi share karo apne customers ke saath! 🚀\n\n_Dashboard ke liye visit karo:_ ${appUrl}/login`
           );
           await prisma.whatsappSession.update({
             where: { phoneNumber },
             data: { step: 'completed', collectedData: {} },
           });
         }).catch(async () => {
-          await sendWhatsAppMessage(phoneNumber, '❌ Kuch problem aa gayi. Kripya dukaanhai.com pe manually try karo.');
+          const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'dukaanhai.com';
+          await sendWhatsAppMessage(phoneNumber, `❌ Kuch problem aa gayi. Kripya ${rootDomain} pe manually try karo.`);
         });
         break;
 
@@ -154,9 +156,12 @@ async function sendWhatsAppMessage(to: string, text: string) {
 }
 
 async function createBusinessFromWhatsApp(phoneNumber: string, data: any): Promise<string> {
+  const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'dukaanhai.com';
+  const dummyEmail = `wa_${phoneNumber.replace('+', '')}@${rootDomain}`;
+
   // Find or create a placeholder user for WhatsApp users
   let user = await prisma.user.findFirst({
-    where: { email: `wa_${phoneNumber.replace('+', '')}@dukaanhai.com` },
+    where: { email: dummyEmail },
   });
 
   if (!user) {
@@ -164,8 +169,9 @@ async function createBusinessFromWhatsApp(phoneNumber: string, data: any): Promi
     const randomPwd = Math.random().toString(36) + Math.random().toString(36);
     user = await prisma.user.create({
       data: {
-        email: `wa_${phoneNumber.replace('+', '')}@dukaanhai.com`,
+        email: dummyEmail,
         password: await bcrypt.hash(randomPwd, 10),
+
         name: data.name,
       },
     });

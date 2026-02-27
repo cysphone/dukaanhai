@@ -24,6 +24,7 @@ export function generateSlug(text: string): string {
 }
 
 export function getBaseUrl(): string {
+  if (process.env.NEXT_PUBLIC_APP_URL) return process.env.NEXT_PUBLIC_APP_URL;
   if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`;
   return process.env.NEXTAUTH_URL || 'http://localhost:3000';
 }
@@ -31,7 +32,8 @@ export function getBaseUrl(): string {
 export function getStoreUrl(slug: string): string {
   const isDev = process.env.NODE_ENV === 'development';
   if (isDev) return `${getBaseUrl()}/store/${slug}`;
-  return `https://${slug}.dukaanhai.com`;
+  const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'dukaanhai.com';
+  return `https://${slug}.${rootDomain}`;
 }
 
 export function truncate(str: string, length: number): string {

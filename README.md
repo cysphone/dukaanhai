@@ -80,6 +80,8 @@ Visit `http://localhost:3000`
 | `DIRECT_URL` | Direct DB URL (for migrations) | Same as DATABASE_URL for Neon |
 | `NEXTAUTH_SECRET` | Random secret (min 32 chars) | `openssl rand -base64 32` |
 | `NEXTAUTH_URL` | Your app URL | `http://localhost:3000` for dev |
+| `NEXT_PUBLIC_APP_URL` | Full URL for App linking | `http://localhost:3000` |
+| `NEXT_PUBLIC_ROOT_DOMAIN` | Root domain for subdomain routing | `localhost:3000` |
 | `GEMINI_API_KEY` | Google Gemini API key | [aistudio.google.com](https://aistudio.google.com) |
 | `WHATSAPP_VERIFY_TOKEN` | Custom string you define | Any string you choose |
 | `WHATSAPP_TOKEN` | WhatsApp Cloud API token | [developers.facebook.com](https://developers.facebook.com) |

@@ -13,7 +13,7 @@ export function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  const rootDomain = 'dukaanhai.com';
+  const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'dukaanhai.com';
   const subdomain = hostname.replace(`.${rootDomain}`, '');
 
   // If it's a subdomain (not www or root)
