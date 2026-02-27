@@ -1,0 +1,94 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --font-sora: 'Sora', sans-serif;
+  --font-mono: 'Space Mono', monospace;
+}
+
+@layer base {
+  * {
+    box-sizing: border-box;
+  }
+  
+  body {
+    font-family: var(--font-sora);
+    background-color: #fafaf9;
+    color: #1c1917;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-sora);
+    font-weight: 700;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply inline-flex items-center gap-2 bg-brand-500 hover:bg-brand-600 text-white font-semibold px-5 py-2.5 rounded-xl transition-all duration-200 shadow-sm hover:shadow-md active:scale-95;
+  }
+
+  .btn-secondary {
+    @apply inline-flex items-center gap-2 bg-surface-100 hover:bg-surface-200 text-surface-900 font-semibold px-5 py-2.5 rounded-xl transition-all duration-200 border border-surface-200;
+  }
+
+  .btn-ghost {
+    @apply inline-flex items-center gap-2 text-surface-800 hover:text-surface-900 hover:bg-surface-100 font-medium px-4 py-2 rounded-lg transition-all duration-200;
+  }
+
+  .card {
+    @apply bg-white rounded-2xl border border-surface-200 shadow-sm;
+  }
+
+  .input-field {
+    @apply w-full px-4 py-2.5 rounded-xl border border-surface-200 bg-white focus:outline-none focus:ring-2 focus:ring-brand-400 focus:border-transparent transition-all duration-200 text-surface-900 placeholder:text-surface-300;
+  }
+
+  .label {
+    @apply block text-sm font-semibold text-surface-800 mb-1.5;
+  }
+
+  .badge {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold;
+  }
+
+  .sidebar-link {
+    @apply flex items-center gap-3 px-4 py-2.5 rounded-xl font-medium text-surface-700 hover:text-brand-600 hover:bg-brand-50 transition-all duration-200 cursor-pointer;
+  }
+
+  .sidebar-link.active {
+    @apply text-brand-600 bg-brand-50 font-semibold;
+  }
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #d6d3d1;
+  border-radius: 99px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #a8a29e;
+}
+
+/* Animations */
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.skeleton {
+  background: linear-gradient(90deg, #f5f5f4 25%, #e7e5e4 50%, #f5f5f4 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}

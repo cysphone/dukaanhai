@@ -1,0 +1,62 @@
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "rhel-openssl-1.0.x"]
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+}
+
+model User {
+  id         String     @id @default(cuid())
+  email      String     @unique
+  password   String
+  name       String?
+  createdAt  DateTime   @default(now())
+  businesses Business[]
+}
+
+model Business {
+  id              String    @id @default(cuid())
+  userId          String
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name            String
+  slug            String    @unique
+  description     String?
+  headline        String?
+  tagline         String?
+  about           String?
+  marketingDesc   String?
+  location        String?
+  whatsappNumber  String?
+  category        String?
+  templateType    String    @default("minimal")
+  customDomain    String?   @unique
+  logoUrl         String?
+  bannerUrl       String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  products        Product[]
+}
+
+model Product {
+  id          String   @id @default(cuid())
+  businessId  String
+  business    Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  name        String
+  price       Float
+  description String?
+  imageUrl    String?
+  inStock     Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model WhatsappSession {
+  id            String   @id @default(cuid())
+  phoneNumber   String   @unique
+  step          String   @default("start")
+  collectedData Json     @default("{}")
+  updatedAt     DateTime @updatedAt
+}
