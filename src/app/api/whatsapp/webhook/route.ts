@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { generateBusinessContent } from '@/lib/gemini';
 import { generateSlug, getStoreUrl } from '@/lib/utils';
+import { uploadImageToCloudinary } from '@/lib/cloudinary';
 
 const VERIFY_TOKEN = process.env.WHATSAPP_VERIFY_TOKEN!;
 const WA_TOKEN = process.env.WHATSAPP_TOKEN!;
@@ -92,20 +93,79 @@ export async function POST(req: NextRequest) {
         nextStep = 'creating';
 
         // Create business (async)
-        createBusinessFromWhatsApp(phoneNumber, collectedData).then(async (storeUrl) => {
+        createBusinessFromWhatsApp(phoneNumber, collectedData).then(async ({ storeUrl, businessId }) => {
           const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://dukaanhai.com';
           await sendWhatsAppMessage(
             phoneNumber,
             `🎉 *Badhai ho! Aapka store ready hai!*\n\n🔗 *Store Link:* ${storeUrl}\n\nAbhi share karo apne customers ke saath! 🚀\n\n_Dashboard ke liye visit karo:_ ${appUrl}/login`
           );
+          await new Promise(r => setTimeout(r, 2000));
+          await sendWhatsAppMessage(
+            phoneNumber,
+            `Kya aap apne store mein naya product add karna chahte hain?\nReply *YES* haan ke liye, ya *NO* nahi ke liye.`
+          );
           await prisma.whatsappSession.update({
             where: { phoneNumber },
-            data: { step: 'completed', collectedData: {} },
+            data: { step: 'ask_add_product', collectedData: { businessId } },
           });
-        }).catch(async () => {
+        }).catch(async (e) => {
+          console.error('Error creating business:', e);
           const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'dukaanhai.com';
           await sendWhatsAppMessage(phoneNumber, `❌ Kuch problem aa gayi. Kripya ${rootDomain} pe manually try karo.`);
         });
+        break;
+
+      case 'ask_add_product':
+        if (text.toUpperCase() === 'YES' || text.toUpperCase() === 'HAAN' || text === '1') {
+          replyText = `Great! 📝 Apne naye product ka *Naam* likho:`;
+          nextStep = 'collect_product_name';
+        } else {
+          replyText = `Aapka store ready hai! 🎉\n\nNaya store banana hai? Reply *RESET* likhke.`;
+          nextStep = 'completed';
+        }
+        break;
+
+      case 'collect_product_name':
+        collectedData.productName = text;
+        replyText = `Accha naam hai! 🏷️\n\nAb product ki *Price (Kimat)* batao (sirf number likho, jaise: 500):`;
+        nextStep = 'collect_product_price';
+        break;
+
+      case 'collect_product_price':
+        const price = parseFloat(text.replace(/[^0-9.]/g, ''));
+        if (isNaN(price)) {
+          replyText = `Kripya sirf number likho (jaise: 500).\nPrice batao:`;
+          nextStep = 'collect_product_price';
+        } else {
+          collectedData.productPrice = price;
+          replyText = `Price set: ₹${price} 💰\n\nProduct ko thoda *describe* karo (1-2 lines mein, ya 'skip' likho):`;
+          nextStep = 'collect_product_desc';
+        }
+        break;
+
+      case 'collect_product_desc':
+        collectedData.productDesc = text.toLowerCase() === 'skip' ? '' : text;
+        replyText = `Done! 📸\n\nAb aakhiri step: Product ki ek *Photo (Image)* bhejo.`;
+        nextStep = 'collect_product_image';
+        break;
+
+      case 'collect_product_image':
+        const image = message.image;
+        if (!image && message.type !== 'image') {
+          replyText = `Kripya text nahi, ek *Photo (Image)* bhejo. 📸`;
+          nextStep = 'collect_product_image';
+        } else {
+          replyText = `⏳ Product add ho raha hai...\nKripya thodi der pratiksha karein.`;
+          nextStep = 'adding_product';
+
+          // Async product creation
+          handleAddProduct(phoneNumber, Object.assign({}, collectedData), message).catch(console.error);
+        }
+        break;
+
+      case 'adding_product':
+        replyText = `⏳ Kirpya pratiksha karein, product add ho raha hai...`;
+        nextStep = 'adding_product';
         break;
 
       case 'completed':
@@ -155,7 +215,7 @@ async function sendWhatsAppMessage(to: string, text: string) {
   });
 }
 
-async function createBusinessFromWhatsApp(phoneNumber: string, data: any): Promise<string> {
+async function createBusinessFromWhatsApp(phoneNumber: string, data: any): Promise<{ storeUrl: string, businessId: string }> {
   const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'dukaanhai.com';
   const dummyEmail = `wa_${phoneNumber.replace('+', '')}@${rootDomain}`;
 
@@ -205,5 +265,54 @@ async function createBusinessFromWhatsApp(phoneNumber: string, data: any): Promi
     },
   });
 
-  return getStoreUrl(business.slug);
+  return { storeUrl: getStoreUrl(business.slug), businessId: business.id };
+}
+
+async function handleAddProduct(phoneNumber: string, data: any, message: any) {
+  try {
+    let imageUrl = '';
+    const image = message.image;
+
+    if (image && image.id) {
+      const waMediaUrl = `https://graph.facebook.com/v20.0/${image.id}`;
+      const mediaRes = await fetch(waMediaUrl, {
+        headers: { Authorization: `Bearer ${WA_TOKEN}` }
+      });
+      const mediaData = await mediaRes.json();
+
+      if (mediaData.url) {
+        const imageRes = await fetch(mediaData.url, {
+          headers: { Authorization: `Bearer ${WA_TOKEN}` }
+        });
+        const arrayBuffer = await imageRes.arrayBuffer();
+        const buffer = Buffer.from(arrayBuffer);
+
+        imageUrl = await uploadImageToCloudinary(buffer, `dukaanhai/products/${data.businessId}`);
+      }
+    }
+
+    await prisma.product.create({
+      data: {
+        businessId: data.businessId,
+        name: data.productName,
+        price: data.productPrice,
+        description: data.productDesc,
+        imageUrl: imageUrl || null,
+        inStock: true
+      }
+    });
+
+    await sendWhatsAppMessage(phoneNumber, `✅ Product successfully add ho gaya!\n\nKya aap ek aur product add karna chahte hain? Reply *YES* or *NO*.`);
+    await prisma.whatsappSession.update({
+      where: { phoneNumber },
+      data: { step: 'ask_add_product', collectedData: { businessId: data.businessId } },
+    });
+  } catch (error) {
+    console.error('Error adding product:', error);
+    await sendWhatsAppMessage(phoneNumber, `❌ Kuch error aa gaya product add karne mein. Kripya baad mein try karein.\n\nKya aap koi aur product try karna chahte hain? Reply *YES* or *NO*.`);
+    await prisma.whatsappSession.update({
+      where: { phoneNumber },
+      data: { step: 'ask_add_product', collectedData: { businessId: data.businessId } },
+    });
+  }
 }

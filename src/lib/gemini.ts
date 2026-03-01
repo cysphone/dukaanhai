@@ -22,6 +22,8 @@ Generate the following in JSON format (no markdown, pure JSON):
   "headline": "A punchy 8-12 word headline for the homepage",
   "tagline": "A memorable 4-8 word tagline/slogan",
   "about": "3-4 sentences about the business story and values",
+  "vision": "A 1-2 sentence inspiring vision statement for the future of the business",
+  "mission": "A 1-2 sentence mission statement explaining what the business does and why",
   "marketingDesc": "A 2-3 sentence marketing description for social media"
 }
 
@@ -39,6 +41,8 @@ Keep the tone warm, local, and authentic. Use simple English that works for Indi
       headline: `Welcome to ${business.name} - Your Trusted Local Store`,
       tagline: 'Quality you can trust, service you deserve',
       about: `${business.name} is a proud local business in ${business.location}. We are dedicated to serving our community with the best ${business.category} products and services. Our commitment to quality and customer satisfaction sets us apart.`,
+      vision: `To be the most trusted and preferred choice for ${business.category} in ${business.location}.`,
+      mission: `To provide high-quality ${business.category} products and exceptional service that delights our customers every day.`,
       marketingDesc: `Discover ${business.name} - your go-to destination for ${business.category} in ${business.location}. We bring you quality products at great prices.`,
     };
   }

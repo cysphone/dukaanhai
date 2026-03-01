@@ -30,6 +30,8 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
         ...(whatsappNumber !== undefined && { whatsappNumber }),
         ...(location !== undefined && { location }),
         ...(category !== undefined && { category }),
+        ...(body.vision !== undefined && { vision: body.vision }),
+        ...(body.mission !== undefined && { mission: body.mission }),
         ...(templateType && { templateType }),
         ...(customDomain !== undefined && { customDomain }),
       },

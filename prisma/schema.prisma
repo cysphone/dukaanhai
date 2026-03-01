@@ -27,6 +27,8 @@ model Business {
   headline        String?
   tagline         String?
   about           String?
+  vision          String?
+  mission         String?
   marketingDesc   String?
   location        String?
   whatsappNumber  String?

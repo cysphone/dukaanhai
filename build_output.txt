@@ -1,0 +1,35 @@
+﻿
+> dukaanhai@0.1.0 build
+> prisma generate && next build
+
+Environment variables loaded from .env
+Prisma schema loaded from prisma\schema.prisma
+node.exe : Error: 
+At C:\Program Files\nod
+ejs\npm.ps1:29 char:3
++   & $NODE_EXE 
+$NPM_CLI_JS $args
++   ~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~
+    + CategoryInfo     
+         : NotSpecifi  
+  ed: (Error: :Strin   
+ g) [], RemoteExcep    
+tion
+    + FullyQualifiedEr 
+   rorId : NativeComm  
+  andError
+ 
+EPERM: operation not 
+permitted, rename 'F:\d
+ukaanhai-project\dukaan
+hai\node_modules\.prism
+a\client\query_engine-w
+indows.dll.node.tmp3148
+' -> 'F:\dukaanhai-proj
+ect\dukaanhai\node_modu
+les\.prisma\client\quer
+y_engine-windows.dll.no
+de'
+
+

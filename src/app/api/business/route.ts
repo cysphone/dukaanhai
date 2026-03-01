@@ -67,6 +67,8 @@ export async function POST(req: NextRequest) {
         headline: aiContent.headline,
         tagline: aiContent.tagline,
         about: aiContent.about,
+        vision: aiContent.vision,
+        mission: aiContent.mission,
         marketingDesc: aiContent.marketingDesc,
       },
     });

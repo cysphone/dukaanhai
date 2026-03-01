@@ -33,6 +33,8 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
         headline: aiContent.headline,
         tagline: aiContent.tagline,
         about: aiContent.about,
+        vision: aiContent.vision,
+        mission: aiContent.mission,
         marketingDesc: aiContent.marketingDesc,
       },
     });

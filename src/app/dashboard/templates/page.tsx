@@ -27,6 +27,30 @@ const TEMPLATES = [
     tag: 'Mobile First',
     preview: '📱',
   },
+  {
+    id: 'futuristic',
+    name: 'Sci-Fi Cyber',
+    desc: 'Neon and glowing tech aesthetic. Perfect for electronics, gaming, and modern gadgets.',
+    colors: ['#000000', '#06b6d4', '#0891b2'],
+    tag: 'Dark Mode',
+    preview: '🚀',
+  },
+  {
+    id: 'elegant',
+    name: 'Luxury Class',
+    desc: 'Serif fonts, smooth fade-ins, and elegant spacing. Ideal for luxury goods and boutiques.',
+    colors: ['#fdfbf7', '#2c2a29', '#d4af37'],
+    tag: 'Premium',
+    preview: '✨',
+  },
+  {
+    id: 'playful',
+    name: 'Fun Brutalist',
+    desc: 'Vibrant colors, thick borders, and playful animations. Great for toys, art, and creative brands.',
+    colors: ['#fff4e6', '#ff6b6b', '#4ecdc4'],
+    tag: 'Creative',
+    preview: '🎨',
+  },
 ];
 
 export default function TemplatesPage() {
@@ -73,11 +97,10 @@ export default function TemplatesPage() {
           <button
             key={template.id}
             onClick={() => setSelected(template.id)}
-            className={`card p-6 text-left transition-all hover:shadow-md ${
-              selected === template.id
+            className={`card p-6 text-left transition-all hover:shadow-md ${selected === template.id
                 ? 'border-2 border-brand-500 shadow-md bg-brand-50/30'
                 : 'border border-surface-200 hover:border-surface-300'
-            }`}
+              }`}
           >
             {/* Preview */}
             <div className="h-40 rounded-xl mb-5 relative overflow-hidden flex items-center justify-center bg-gradient-to-br from-surface-100 to-surface-200">

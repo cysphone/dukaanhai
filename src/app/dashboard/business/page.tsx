@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { getStoreUrl } from '@/lib/utils';
 
 const CATEGORIES = [
   'Food & Beverages', 'Clothing & Fashion', 'Electronics', 'Home & Kitchen',
@@ -12,6 +13,9 @@ const TEMPLATES = [
   { id: 'minimal', name: 'Minimal Artisan', desc: 'Clean and elegant', emoji: '🤍' },
   { id: 'bold', name: 'Bold Visual Brand', desc: 'Vibrant and energetic', emoji: '🔥' },
   { id: 'catalog', name: 'Mobile Catalog', desc: 'WhatsApp optimized', emoji: '📱' },
+  { id: 'futuristic', name: 'Sci-Fi Cyber', desc: 'Neon and glowing', emoji: '🚀' },
+  { id: 'elegant', name: 'Luxury Class', desc: 'Serif and smooth', emoji: '✨' },
+  { id: 'playful', name: 'Fun Brutalist', desc: 'Vibrant and thick', emoji: '🎨' },
 ];
 
 export default function BusinessPage() {
@@ -21,7 +25,7 @@ export default function BusinessPage() {
   const [generating, setGenerating] = useState(false);
   const [saved, setSaved] = useState(false);
   const [form, setForm] = useState({
-    name: '', description: '', whatsappNumber: '', location: '', category: '', templateType: 'minimal',
+    name: '', description: '', whatsappNumber: '', location: '', category: '', vision: '', mission: '', templateType: 'minimal',
   });
 
   useEffect(() => {
@@ -36,6 +40,8 @@ export default function BusinessPage() {
             whatsappNumber: d.business.whatsappNumber || '',
             location: d.business.location || '',
             category: d.business.category || '',
+            vision: d.business.vision || '',
+            mission: d.business.mission || '',
             templateType: d.business.templateType || 'minimal',
           });
         }
@@ -77,7 +83,7 @@ export default function BusinessPage() {
   };
 
   if (loading) {
-    return <div className="space-y-4 animate-pulse">{[1,2,3].map(i => <div key={i} className="h-16 bg-surface-200 rounded-xl" />)}</div>;
+    return <div className="space-y-4 animate-pulse">{[1, 2, 3].map(i => <div key={i} className="h-16 bg-surface-200 rounded-xl" />)}</div>;
   }
 
   return (
@@ -96,7 +102,7 @@ export default function BusinessPage() {
             <input
               type="text"
               value={form.name}
-              onChange={e => setForm({...form, name: e.target.value})}
+              onChange={e => setForm({ ...form, name: e.target.value })}
               required
               placeholder="e.g. Sharma Kirana Store"
               className="input-field"
@@ -106,7 +112,7 @@ export default function BusinessPage() {
             <label className="label">Category *</label>
             <select
               value={form.category}
-              onChange={e => setForm({...form, category: e.target.value})}
+              onChange={e => setForm({ ...form, category: e.target.value })}
               required
               className="input-field"
             >
@@ -120,7 +126,7 @@ export default function BusinessPage() {
           <label className="label">Business Description</label>
           <textarea
             value={form.description}
-            onChange={e => setForm({...form, description: e.target.value})}
+            onChange={e => setForm({ ...form, description: e.target.value })}
             placeholder="Tell us about your business..."
             rows={3}
             className="input-field resize-none"
@@ -133,7 +139,7 @@ export default function BusinessPage() {
             <input
               type="tel"
               value={form.whatsappNumber}
-              onChange={e => setForm({...form, whatsappNumber: e.target.value})}
+              onChange={e => setForm({ ...form, whatsappNumber: e.target.value })}
               placeholder="+91 98765 43210"
               className="input-field"
             />
@@ -143,7 +149,7 @@ export default function BusinessPage() {
             <input
               type="text"
               value={form.location}
-              onChange={e => setForm({...form, location: e.target.value})}
+              onChange={e => setForm({ ...form, location: e.target.value })}
               placeholder="e.g. Lajpat Nagar, Delhi"
               className="input-field"
             />
@@ -158,12 +164,11 @@ export default function BusinessPage() {
               <button
                 key={t.id}
                 type="button"
-                onClick={() => setForm({...form, templateType: t.id})}
-                className={`p-4 rounded-xl border-2 text-center transition-all ${
-                  form.templateType === t.id
-                    ? 'border-brand-500 bg-brand-50'
-                    : 'border-surface-200 hover:border-surface-300'
-                }`}
+                onClick={() => setForm({ ...form, templateType: t.id })}
+                className={`p-4 rounded-xl border-2 text-center transition-all ${form.templateType === t.id
+                  ? 'border-brand-500 bg-brand-50'
+                  : 'border-surface-200 hover:border-surface-300'
+                  }`}
               >
                 <span className="text-2xl block mb-2">{t.emoji}</span>
                 <span className="text-xs font-bold text-surface-800 block">{t.name}</span>
@@ -211,6 +216,8 @@ export default function BusinessPage() {
               { label: 'Headline', value: business.headline, icon: '💬' },
               { label: 'Tagline', value: business.tagline, icon: '✨' },
               { label: 'About', value: business.about, icon: '📖' },
+              { label: 'Vision', value: business.vision, icon: '🚀' },
+              { label: 'Mission', value: business.mission, icon: '🎯' },
               { label: 'Marketing Description', value: business.marketingDesc, icon: '📢' },
             ].map(item => item.value && (
               <div key={item.label}>
@@ -228,11 +235,11 @@ export default function BusinessPage() {
             <div className="mt-6 pt-6 border-t border-surface-100">
               <p className="text-xs font-bold text-surface-500 uppercase tracking-wider mb-2">Store URL</p>
               <a
-                href={`/store/${business.slug}`}
+                href={getStoreUrl(business.slug)}
                 target="_blank"
                 className="font-mono text-sm text-brand-600 hover:text-brand-700 transition-colors"
               >
-                /store/{business.slug}
+                {getStoreUrl(business.slug)}
               </a>
             </div>
           )}

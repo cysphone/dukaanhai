@@ -3,6 +3,9 @@ import { prisma } from '@/lib/prisma';
 import MinimalTemplate from '@/components/templates/MinimalTemplate';
 import BoldTemplate from '@/components/templates/BoldTemplate';
 import CatalogTemplate from '@/components/templates/CatalogTemplate';
+import FuturisticTemplate from '@/components/templates/FuturisticTemplate';
+import ElegantTemplate from '@/components/templates/ElegantTemplate';
+import PlayfulTemplate from '@/components/templates/PlayfulTemplate';
 
 interface StorePageProps {
   params: { slug: string };
@@ -52,6 +55,12 @@ export default async function StorePage({ params, searchParams }: StorePageProps
       return <BoldTemplate {...props} />;
     case 'catalog':
       return <CatalogTemplate {...props} />;
+    case 'futuristic':
+      return <FuturisticTemplate {...props} />;
+    case 'elegant':
+      return <ElegantTemplate {...props} />;
+    case 'playful':
+      return <PlayfulTemplate {...props} />;
     default:
       return <MinimalTemplate {...props} />;
   }

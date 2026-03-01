@@ -1,3 +1,5 @@
+'use client';
+
 import { formatPrice } from '@/lib/utils';
 
 interface TemplateProps {
@@ -7,6 +9,9 @@ interface TemplateProps {
     headline?: string | null;
     tagline?: string | null;
     about?: string | null;
+    vision?: string | null;
+    mission?: string | null;
+    marketingDesc?: string | null;
     whatsappNumber?: string | null;
     location?: string | null;
     category?: string | null;
@@ -104,34 +109,32 @@ export default function CatalogTemplate({ business, products }: TemplateProps) {
           ) : (
             <div className="space-y-3">
               {products.map((product) => (
-                <div key={product.id} className="flex gap-4 bg-gray-50 rounded-2xl p-4 border border-gray-100">
+                <div key={product.id} className="flex gap-4 bg-gray-50 rounded-2xl p-4 border border-gray-100 relative group overflow-hidden">
                   {/* Thumbnail */}
-                  <div className="w-20 h-20 flex-shrink-0 bg-gray-200 rounded-xl overflow-hidden">
+                  <div className="w-24 h-24 flex-shrink-0 bg-gray-200 rounded-xl overflow-hidden shadow-sm">
                     {product.imageUrl ? (
-                      <img src={product.imageUrl} alt={product.name} className="w-full h-full object-cover" />
+                      <img src={product.imageUrl} alt={product.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
                     ) : (
-                      <div className="w-full h-full flex items-center justify-center text-2xl">📦</div>
+                      <div className="w-full h-full flex items-center justify-center text-3xl">📦</div>
                     )}
                   </div>
 
                   {/* Details */}
-                  <div className="flex-1 min-w-0">
-                    <h4 className="font-bold text-gray-900 text-sm leading-tight mb-1 truncate">{product.name}</h4>
+                  <div className="flex-1 min-w-0 flex flex-col justify-center">
+                    <h4 className="font-bold text-gray-900 text-base leading-tight mb-1 truncate group-hover:text-emerald-700 transition-colors">{product.name}</h4>
                     {product.description && (
-                      <p className="text-gray-500 text-xs leading-relaxed line-clamp-2 mb-2">{product.description}</p>
+                      <p className="text-gray-500 text-xs leading-relaxed line-clamp-2 mb-3">{product.description}</p>
                     )}
-                    <div className="flex items-center justify-between">
-                      <span className="text-emerald-600 font-extrabold text-base">{formatPrice(product.price)}</span>
-                      {waNumber && (
+                    <div className="flex items-center justify-between mt-auto">
+                      <span className="text-emerald-600 font-extrabold text-lg">{formatPrice(product.price)}</span>
+                      <div className="flex gap-2">
                         <a
-                          href={waLink(product.name)}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="bg-emerald-500 text-white text-xs font-bold px-3 py-1.5 rounded-xl hover:bg-emerald-600 transition-all"
+                          href={`/store/${business.slug}/product/${product.id}`}
+                          className="bg-white border border-gray-200 text-gray-700 text-xs font-bold px-3 py-1.5 rounded-lg hover:bg-gray-50 transition-all shadow-sm"
                         >
-                          Order
+                          View
                         </a>
-                      )}
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -140,13 +143,72 @@ export default function CatalogTemplate({ business, products }: TemplateProps) {
           )}
         </div>
 
-        {/* About */}
-        {business.about && (
-          <div className="mx-5 mb-8 bg-teal-50 border border-teal-100 rounded-2xl p-5">
-            <h4 className="font-extrabold text-teal-800 mb-2 text-sm">About Us 🙏</h4>
-            <p className="text-teal-700 text-xs leading-relaxed">{business.about}</p>
+        {/* Mission/Vision/About */}
+        <div className="px-5 space-y-4 mb-8">
+          {business.about && (
+            <div className="bg-teal-50 border border-teal-100 rounded-2xl p-6 shadow-sm">
+              <h4 className="font-extrabold text-teal-800 mb-3 text-lg flex items-center gap-2">
+                <span className="text-2xl">👋</span> About Us
+              </h4>
+              <p className="text-teal-700 text-sm leading-relaxed">{business.about}</p>
+            </div>
+          )}
+
+          <div className="grid grid-cols-2 gap-4">
+            {business.mission && (
+              <div className="bg-emerald-50 border border-emerald-100 rounded-2xl p-5 shadow-sm">
+                <h4 className="font-extrabold text-emerald-800 mb-2 text-sm flex items-center gap-2">
+                  <span>🎯</span> Mission
+                </h4>
+                <p className="text-emerald-700 text-xs leading-relaxed">{business.mission}</p>
+              </div>
+            )}
+
+            {business.vision && (
+              <div className="bg-emerald-50 border border-emerald-100 rounded-2xl p-5 shadow-sm">
+                <h4 className="font-extrabold text-emerald-800 mb-2 text-sm flex items-center gap-2">
+                  <span>🚀</span> Vision
+                </h4>
+                <p className="text-emerald-700 text-xs leading-relaxed">{business.vision}</p>
+              </div>
+            )}
           </div>
-        )}
+
+          {business.marketingDesc && (
+            <div className="bg-gradient-to-r from-emerald-500 to-teal-600 rounded-2xl p-1 shadow-md">
+              <div className="bg-white rounded-xl p-5 h-full">
+                <p className="text-gray-800 text-sm font-bold text-center italic">
+                  "{business.marketingDesc}"
+                </p>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Contact Form */}
+        <div className="px-5 mb-10">
+          <div className="bg-white border-2 border-emerald-100 rounded-3xl p-6 shadow-lg shadow-emerald-100/50">
+            <div className="text-center mb-6">
+              <h3 className="font-extrabold text-gray-900 text-xl mb-1">Send a Message</h3>
+              <p className="text-gray-500 text-xs">We'd love to hear from you!</p>
+            </div>
+
+            <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); alert("Thanks for reaching out! We will get back to you soon."); }}>
+              <div>
+                <input type="text" required className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all" placeholder="Your Name" />
+              </div>
+              <div>
+                <input type="email" required className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all" placeholder="Your Email" />
+              </div>
+              <div>
+                <textarea required rows={3} className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all resize-none" placeholder="Your Message"></textarea>
+              </div>
+              <button type="submit" className="w-full bg-gray-900 hover:bg-gray-800 text-white font-bold py-3.5 rounded-xl transition-all shadow-md">
+                Submit
+              </button>
+            </form>
+          </div>
+        </div>
 
         <div className="border-t border-gray-100 px-5 py-5 text-center">
           <p className="text-gray-400 text-xs">
