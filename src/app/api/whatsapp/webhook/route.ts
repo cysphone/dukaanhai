@@ -46,6 +46,15 @@ export async function POST(req: NextRequest) {
 
     const collectedData = (session.collectedData as any) || {};
 
+    if (text.toUpperCase() === 'RESET') {
+      await prisma.whatsappSession.update({
+        where: { phoneNumber },
+        data: { step: 'start', collectedData: {} },
+      });
+      await sendWhatsAppMessage(phoneNumber, `✅ Reset ho gaya!\n\n*Apni nayi dukaan ka naam batao:*`);
+      return NextResponse.json({ status: 'ok' });
+    }
+
     let replyText = '';
     let nextStep = session.step;
 
@@ -112,6 +121,11 @@ export async function POST(req: NextRequest) {
           console.error('Error creating business:', e);
           const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'dukaanhai.com';
           await sendWhatsAppMessage(phoneNumber, `❌ Kuch problem aa gayi. Kripya ${rootDomain} pe manually try karo.`);
+          // Unstick the user from 'creating' so they can try again
+          await prisma.whatsappSession.update({
+            where: { phoneNumber },
+            data: { step: 'start', collectedData: {} },
+          });
         });
         break;
 
@@ -178,6 +192,7 @@ export async function POST(req: NextRequest) {
 
       default:
         replyText = `Mujhe samajh nahi aaya. *RESET* likhke nayi shuruwaat karo.`;
+        nextStep = 'start';
     }
 
     // Update session
