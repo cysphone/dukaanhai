@@ -44,8 +44,59 @@ export async function POST(req: NextRequest) {
       update: { updatedAt: new Date() },
     });
 
-    const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'dukaanhai.com';
+    const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'dukaanhai.in';
     const dummyEmail = `wa_${phoneNumber.replace('+', '')}@${rootDomain}`;
+
+    const msgUpper = text.toUpperCase();
+
+    // -- Dashboard Command Interceptor --
+    if (msgUpper === 'DASHBOARD') {
+      const existingUser = await prisma.user.findFirst({
+        where: {
+          OR: [
+            { email: dummyEmail },
+            { phoneNumber }
+          ]
+        },
+        include: { businesses: true }
+      });
+
+      console.log("INTERCEPTED DASHBOARD:", { hasUser: !!existingUser, pwdLen: existingUser?.password?.length });
+
+      if (!existingUser) {
+        await sendWhatsAppMessage(phoneNumber, `No account found. Please create your store first by typing *RESET*.`);
+        return NextResponse.json({ status: 'ok' });
+      }
+
+      if (existingUser.password && existingUser.password.length > 0) {
+        const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://dukaanhai.in';
+        await sendWhatsAppMessage(phoneNumber, `You already have dashboard access.\n\nVisit: ${appUrl}/login`);
+        return NextResponse.json({ status: 'ok' });
+      }
+
+      // Generate secure token
+      const crypto = await import('crypto');
+      const token = crypto.randomBytes(32).toString('hex');
+      const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes from now
+
+      await prisma.loginToken.create({
+        data: {
+          phoneNumber,
+          token,
+          expiresAt
+        }
+      });
+
+      const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://dukaanhai.in';
+      await sendWhatsAppMessage(phoneNumber, `Click this secure link to access your dashboard:\n\n${appUrl}/dashboard-access?token=${token}\n\nThis link expires in 10 minutes.`);
+
+      await prisma.whatsappSession.update({
+        where: { phoneNumber },
+        data: { step: 'completed' }
+      });
+
+      return NextResponse.json({ status: 'ok' });
+    }
 
     // Detect Returning Users
     if (session.step === 'start') {
@@ -82,7 +133,7 @@ export async function POST(req: NextRequest) {
 
     const collectedData = (session.collectedData as any) || {};
 
-    if (text.toUpperCase() === 'RESET') {
+    if (msgUpper === 'RESET') {
       const existingUser = await prisma.user.findFirst({
         where: { email: dummyEmail },
         include: { businesses: true }
@@ -145,7 +196,7 @@ export async function POST(req: NextRequest) {
             nextStep = 'select_edit_product';
           }
         } else if (text === '4') {
-          const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://dukaanhai.com';
+          const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://dukaanhai.in';
           replyText = `Aap WhatsApp se sirf ek hi site bana sakte hain aur manage kar sakte hain.\n\nNayi site banane ke liye kripya website par login karein:\n${appUrl}/login\n\nType *RESET* to go back to the menu.`;
           nextStep = 'handle_menu_choice';
         } else {
@@ -256,7 +307,7 @@ export async function POST(req: NextRequest) {
 
         // Create business (async)
         createBusinessFromWhatsApp(phoneNumber, collectedData).then(async ({ storeUrl, businessId }) => {
-          const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://dukaanhai.com';
+          const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://dukaanhai.in';
           await sendWhatsAppMessage(
             phoneNumber,
             `🎉 *Badhai ho! Aapka store ready hai!*\n\n🔗 *Store Link:* ${storeUrl}\n\nAbhi share karo apne customers ke saath! 🚀\n\n_Dashboard ke liye visit karo:_ ${appUrl}/login`
@@ -272,7 +323,7 @@ export async function POST(req: NextRequest) {
           });
         }).catch(async (e) => {
           console.error('Error creating business:', e);
-          const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'dukaanhai.com';
+          const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'dukaanhai.in';
           await sendWhatsAppMessage(phoneNumber, `❌ Kuch problem aa gayi. Kripya ${rootDomain} pe manually try karo.`);
           // Unstick the user from 'creating' so they can try again
           await prisma.whatsappSession.update({
@@ -384,7 +435,7 @@ async function sendWhatsAppMessage(to: string, text: string) {
 }
 
 async function createBusinessFromWhatsApp(phoneNumber: string, data: any): Promise<{ storeUrl: string, businessId: string }> {
-  const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'dukaanhai.com';
+  const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'dukaanhai.in';
   const dummyEmail = `wa_${phoneNumber.replace('+', '')}@${rootDomain}`;
 
   // Find or create a placeholder user for WhatsApp users
@@ -393,14 +444,11 @@ async function createBusinessFromWhatsApp(phoneNumber: string, data: any): Promi
   });
 
   if (!user) {
-    const bcrypt = await import('bcryptjs');
-    const randomPwd = Math.random().toString(36) + Math.random().toString(36);
     user = await prisma.user.create({
       data: {
         email: dummyEmail,
-        password: await bcrypt.hash(randomPwd, 10),
-
         name: data.name,
+        createdVia: 'whatsapp'
       },
     });
   }

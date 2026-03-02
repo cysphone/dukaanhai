@@ -18,7 +18,7 @@ export default function LoginPage() {
     setError('');
 
     const result = await signIn('credentials', {
-      email,
+      identifier: email,
       password,
       redirect: false,
     });
@@ -54,19 +54,24 @@ export default function LoginPage() {
 
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
-              <label className="block text-sm font-semibold text-surface-300 mb-2">Email</label>
+              <label className="block text-sm font-semibold text-surface-300 mb-2">Email or WhatsApp Number</label>
               <input
-                type="email"
+                type="text"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                placeholder="you@example.com"
+                placeholder="you@example.com or +91..."
                 className="w-full bg-surface-950 border border-surface-700 text-white placeholder:text-surface-600 px-4 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-semibold text-surface-300 mb-2">Password</label>
+              <div className="flex justify-between items-center mb-2">
+                <label className="block text-sm font-semibold text-surface-300">Password</label>
+                <Link href="/forgot-password" className="text-sm font-semibold text-brand-400 hover:text-brand-300">
+                  Forgot Password?
+                </Link>
+              </div>
               <input
                 type="password"
                 value={password}

@@ -215,7 +215,7 @@ export default function CatalogTemplate({ business, products }: TemplateProps) {
             Powered by <a href="/" className="text-emerald-600 font-bold">DukaanHai</a>
           </p>
           <p className="text-gray-300 text-xs mt-1">
-            Create your free store at {process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'dukaanhai.com'}
+            Create your free store at {process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'dukaanhai.in'}
           </p>
         </div>
       </div>

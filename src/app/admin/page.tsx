@@ -95,6 +95,28 @@ export default function AdminPage() {
         }
     };
 
+    const handleDeleteUser = async (userId: string, name: string) => {
+        if (!confirm(`Are you absolutely sure you want to completely delete the user "${name}"? This will delete ALL their stores and products. This action CANNOT be undone.`)) {
+            return;
+        }
+
+        try {
+            const res = await fetch(`/api/admin/users/${userId}`, {
+                method: 'DELETE'
+            });
+
+            if (!res.ok) {
+                const data = await res.json();
+                throw new Error(data.error || "Failed to delete user");
+            }
+
+            alert('User deleted successfully.');
+            loadStats(); // Reload to refresh list
+        } catch (err: any) {
+            alert(err.message);
+        }
+    };
+
     const handleEditProductClick = (product: any) => {
         setEditingProduct(product.id);
         setEditForm({
@@ -209,7 +231,13 @@ export default function AdminPage() {
                                 <tr key={user.id} className="hover:bg-surface-50/50 transition-colors">
                                     <td className="p-4 align-top">
                                         <p className="font-bold text-surface-900">{user.name || 'No Name'}</p>
-                                        <p className="text-sm text-surface-500">{user.email}</p>
+                                        <p className="text-sm text-surface-500 mb-2">{user.email}</p>
+                                        <button
+                                            onClick={() => handleDeleteUser(user.id, user.name || user.email)}
+                                            className="px-3 py-1 bg-red-50 text-red-600 rounded text-xs font-semibold hover:bg-red-100 transition-colors"
+                                        >
+                                            Delete User
+                                        </button>
                                     </td>
                                     <td className="p-4 align-top">
                                         {user.businesses.length === 0 ? (

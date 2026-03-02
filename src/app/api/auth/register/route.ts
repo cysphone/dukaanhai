@@ -4,10 +4,10 @@ import { prisma } from '@/lib/prisma';
 
 export async function POST(req: NextRequest) {
   try {
-    const { name, email, password } = await req.json();
+    const { name, email, phone, password } = await req.json();
 
-    if (!email || !password) {
-      return NextResponse.json({ error: 'Email and password required' }, { status: 400 });
+    if (!email || !password || !phone) {
+      return NextResponse.json({ error: 'Email, phone, and password required' }, { status: 400 });
     }
 
     if (password.length < 6) {
@@ -20,8 +20,20 @@ export async function POST(req: NextRequest) {
     }
 
     const hashedPassword = await bcrypt.hash(password, 12);
+
+    let formattedPhone = phone.trim();
+    if (/^\d{10}$/.test(formattedPhone)) {
+      formattedPhone = `+91${formattedPhone}`;
+    }
+
+    // Check if phone number is already registered
+    const existingPhone = await prisma.user.findUnique({ where: { phoneNumber: formattedPhone } });
+    if (existingPhone) {
+      return NextResponse.json({ error: 'Phone number already registered' }, { status: 409 });
+    }
+
     const user = await prisma.user.create({
-      data: { email, password: hashedPassword, name: name || null },
+      data: { email, phoneNumber: formattedPhone, password: hashedPassword, name: name || null },
     });
 
     return NextResponse.json({ success: true, userId: user.id }, { status: 201 });

@@ -49,7 +49,7 @@ export default function SettingsPage() {
           </button>
         </div>
         <p className="text-xs text-surface-400 mt-2">
-          Custom domain connection coming soon. Your store is available at yourslug.{process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'dukaanhai.com'}
+          Custom domain connection coming soon. Your store is available at yourslug.{process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'dukaanhai.in'}
         </p>
       </div>
 

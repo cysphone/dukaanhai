@@ -18,7 +18,7 @@
 | 🎨 3 Templates | Minimal Artisan · Bold Visual Brand · Mobile Catalog |
 | 📦 Product Management | Add, edit, delete products with image URLs |
 | 🔐 Auth | Email/password auth with NextAuth.js |
-| 🌐 Subdomain Routing | `yourslug.dukaanhai.com` routing via Next.js middleware |
+| 🌐 Subdomain Routing | `yourslug.dukaanhai.in` routing via Next.js middleware |
 | 📱 Mobile-First | All templates are fully responsive |
 | 🚀 Vercel Ready | Serverless-compatible with Prisma + Neon |
 
@@ -115,7 +115,7 @@ User: "+91 9876543210"
 Bot: "Template choose karo: 1, 2, or 3"
 User: "1"
 Bot: "🤖 Store bana raha hun..." [creates store]
-Bot: "🎉 Store ready! https://sharma-kirana-store.dukaanhai.com"
+Bot: "🎉 Store ready! https://sharma-kirana-store.dukaanhai.in"
 ```
 
 ---
@@ -123,12 +123,12 @@ Bot: "🎉 Store ready! https://sharma-kirana-store.dukaanhai.com"
 ## 🌐 Subdomain Routing Setup (Production)
 
 ### On Vercel:
-1. Add your domain `dukaanhai.com` to Vercel project
-2. Add wildcard DNS record: `*.dukaanhai.com → CNAME → cname.vercel-dns.com`
-3. In Vercel dashboard: Add `*.dukaanhai.com` as a domain
+1. Add your domain `dukaanhai.in` to Vercel project
+2. Add wildcard DNS record: `*.dukaanhai.in → CNAME → cname.vercel-dns.com`
+3. In Vercel dashboard: Add `*.dukaanhai.in` as a domain
 
 ### The middleware (`src/middleware.ts`) handles:
-- `yourstore.dukaanhai.com` → rewrite to `/store/yourstore`
+- `yourstore.dukaanhai.in` → rewrite to `/store/yourstore`
 - Custom domains → rewrite to `/domain/customdomain`
 
 ---

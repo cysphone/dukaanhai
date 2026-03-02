@@ -32,7 +32,7 @@ export function getBaseUrl(): string {
 export function getStoreUrl(slug: string): string {
   const isDev = process.env.NODE_ENV === 'development';
   if (isDev) return `${getBaseUrl()}/store/${slug}`;
-  const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'dukaanhai.com';
+  const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'dukaanhai.in';
   return `https://${slug}.${rootDomain}`;
 }
 
