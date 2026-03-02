@@ -44,15 +44,67 @@ export async function POST(req: NextRequest) {
       update: { updatedAt: new Date() },
     });
 
+    const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'dukaanhai.com';
+    const dummyEmail = `wa_${phoneNumber.replace('+', '')}@${rootDomain}`;
+
+    // Detect Returning Users
+    if (session.step === 'start') {
+      const existingUser = await prisma.user.findFirst({
+        where: { email: dummyEmail },
+        include: { businesses: true }
+      });
+      const existingBusiness = existingUser?.businesses?.[0];
+
+      if (existingBusiness && existingBusiness.customDomain) { // Assume it's fully created if it exists
+        session = await prisma.whatsappSession.update({
+          where: { phoneNumber },
+          data: { step: 'main_menu', collectedData: { businessId: existingBusiness.id } }
+        });
+        // We need to send the main menu immediately if we just bumped them here
+        if (text.toUpperCase() !== 'RESET') {
+          // It's the first message of the session bumping them to main menu
+          const replyText = `Welcome back! 🏪 (v2)\n\nAapko apne store mein kya change karna hai?\n\n1️⃣ Edit Store Description\n2️⃣ Add New Product\n3️⃣ Edit Existing Product\n4️⃣ Create New Site\n\nReply with 1, 2, 3 or 4.`;
+          await sendWhatsAppMessage(phoneNumber, replyText);
+          return NextResponse.json({ status: 'ok' });
+        }
+      } else if (existingBusiness) {
+        session = await prisma.whatsappSession.update({
+          where: { phoneNumber },
+          data: { step: 'main_menu', collectedData: { businessId: existingBusiness.id } }
+        });
+        if (text.toUpperCase() !== 'RESET') {
+          const replyText = `Welcome back! 🏪 (v2)\n\nAapko apne store mein kya change karna hai?\n\n1️⃣ Edit Store Description\n2️⃣ Add New Product\n3️⃣ Edit Existing Product\n4️⃣ Create New Site\n\nReply with 1, 2, 3 or 4.`;
+          await sendWhatsAppMessage(phoneNumber, replyText);
+          return NextResponse.json({ status: 'ok' });
+        }
+      }
+    }
+
     const collectedData = (session.collectedData as any) || {};
 
     if (text.toUpperCase() === 'RESET') {
-      await prisma.whatsappSession.update({
-        where: { phoneNumber },
-        data: { step: 'start', collectedData: {} },
+      const existingUser = await prisma.user.findFirst({
+        where: { email: dummyEmail },
+        include: { businesses: true }
       });
-      await sendWhatsAppMessage(phoneNumber, `✅ Reset ho gaya!\n\n*Apni nayi dukaan ka naam batao:*`);
-      return NextResponse.json({ status: 'ok' });
+      const existingBusiness = existingUser?.businesses?.[0];
+
+      if (existingBusiness) {
+        await prisma.whatsappSession.update({
+          where: { phoneNumber },
+          data: { step: 'main_menu', collectedData: { businessId: existingBusiness.id } },
+        });
+        const replyText = `Welcome back! 🏪 (v2)\n\nAapko apne store mein kya change karna hai?\n\n1️⃣ Edit Store Description\n2️⃣ Add New Product\n3️⃣ Edit Existing Product\n4️⃣ Create New Site\n\nReply with 1, 2, 3 or 4.`;
+        await sendWhatsAppMessage(phoneNumber, `✅ Menu pe wapas aa gaye! (v2)\n\n${replyText}`);
+        return NextResponse.json({ status: 'ok' });
+      } else {
+        await prisma.whatsappSession.update({
+          where: { phoneNumber },
+          data: { step: 'start', collectedData: {} },
+        });
+        await sendWhatsAppMessage(phoneNumber, `✅ Reset ho gaya! (v2)\n\n*Apni nayi dukaan ka naam batao:*`);
+        return NextResponse.json({ status: 'ok' });
+      }
     }
 
     let replyText = '';
@@ -60,8 +112,114 @@ export async function POST(req: NextRequest) {
 
     switch (session.step) {
       case 'start':
-        replyText = `🙏 *Namaste! Welcome to DukaanHai!*\n\nMein aapko ek minute mein online store banana mein help karunga! 🚀\n\n*Apni dukaan ka naam batao:*`;
+        replyText = `🙏 *Namaste! Welcome to DukaanHai! (v2)*\n\nMein aapko ek minute mein online store banana mein help karunga! 🚀\n\n*Apni dukaan ka naam batao:*`;
         nextStep = 'collect_name';
+        break;
+
+      case 'main_menu':
+        replyText = `Welcome back! 🏪 (v2)\n\nAapko apne store mein kya change karna hai?\n\n1️⃣ Edit Store Description\n2️⃣ Add New Product\n3️⃣ Edit Existing Product\n4️⃣ Create New Site\n\nReply with 1, 2, 3 or 4.`;
+        nextStep = 'handle_menu_choice';
+        break;
+
+      case 'handle_menu_choice':
+        if (text === '1') {
+          replyText = `✏️ Apne store ki nayi tag line ya description bhejein:`;
+          nextStep = 'edit_store_desc';
+        } else if (text === '2') {
+          replyText = `Great! 📝 Apne naye product ka *Naam* likho:`;
+          nextStep = 'collect_product_name';
+        } else if (text === '3') {
+          // Fetch products
+          const products = await prisma.product.findMany({ where: { businessId: collectedData.businessId } });
+          if (products.length === 0) {
+            replyText = `Aapke store mein koi products nahi hain.\n\nType *RESET* to go back.`;
+            nextStep = 'handle_menu_choice';
+          } else {
+            let pList = `Aapke Products:\n\n`;
+            products.forEach((p, idx) => {
+              pList += `${idx + 1}. ${p.name} (₹${p.price})\n`;
+            });
+            pList += `\nKonsa product edit karna hai? (Reply with number, eg: 1)`;
+            replyText = pList;
+            collectedData.tmpProducts = products.map(p => p.id); // Store IDs mapping to indexes
+            nextStep = 'select_edit_product';
+          }
+        } else if (text === '4') {
+          const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://dukaanhai.com';
+          replyText = `Aap WhatsApp se sirf ek hi site bana sakte hain aur manage kar sakte hain.\n\nNayi site banane ke liye kripya website par login karein:\n${appUrl}/login\n\nType *RESET* to go back to the menu.`;
+          nextStep = 'handle_menu_choice';
+        } else {
+          replyText = `Kripya 1, 2, 3 ya 4 reply karein.\n\n1️⃣ Edit Store Description\n2️⃣ Add New Product\n3️⃣ Edit Existing Product\n4️⃣ Create New Site`;
+          nextStep = 'handle_menu_choice';
+        }
+        break;
+
+      case 'edit_store_desc':
+        await prisma.business.update({
+          where: { id: collectedData.businessId },
+          data: { description: text }
+        });
+        replyText = `✅ Store description update ho gayi!\n\nType *RESET* to go back to main menu.`;
+        nextStep = 'completed';
+        break;
+
+      case 'select_edit_product':
+        const idx = parseInt(text) - 1;
+        const pIds = collectedData.tmpProducts || [];
+        if (isNaN(idx) || idx < 0 || idx >= pIds.length) {
+          replyText = `Kripya sahi number reply karein (eg: 1).`;
+          nextStep = 'select_edit_product';
+        } else {
+          collectedData.editProductId = pIds[idx];
+          replyText = `Aap kya edit karna chahte hain?\n\n1️⃣ Name\n2️⃣ Price\n3️⃣ Description\n4️⃣ Delete Product\n\nReply with number:`;
+          nextStep = 'choose_product_field';
+        }
+        break;
+
+      case 'choose_product_field':
+        if (text === '1') {
+          replyText = `🏷️ Naya product naam likho:`;
+          collectedData.editField = 'name';
+          nextStep = 'save_product_field';
+        } else if (text === '2') {
+          replyText = `💰 Nayi price likho (e.g. 500):`;
+          collectedData.editField = 'price';
+          nextStep = 'save_product_field';
+        } else if (text === '3') {
+          replyText = `📝 Nayi description likho:`;
+          collectedData.editField = 'description';
+          nextStep = 'save_product_field';
+        } else if (text === '4') {
+          await prisma.product.delete({ where: { id: collectedData.editProductId } });
+          replyText = `🗑️ Product delete ho gaya!\n\nType *RESET* to go back.`;
+          nextStep = 'completed';
+        } else {
+          replyText = `Kripya 1, 2, 3 ya 4 reply karein.`;
+          nextStep = 'choose_product_field';
+        }
+        break;
+
+      case 'save_product_field':
+        let updateData: any = {};
+        if (collectedData.editField === 'name') updateData.name = text;
+        if (collectedData.editField === 'description') updateData.description = text;
+        if (collectedData.editField === 'price') {
+          const num = parseFloat(text.replace(/[^0-9.]/g, ''));
+          if (isNaN(num)) {
+            replyText = `Kripya sirf number likho.\nPrice batao:`;
+            nextStep = 'save_product_field';
+            break;
+          }
+          updateData.price = num;
+        }
+
+        await prisma.product.update({
+          where: { id: collectedData.editProductId },
+          data: updateData
+        });
+
+        replyText = `✅ Product update ho gaya!\n\nType *RESET* to go back to main menu.`;
+        nextStep = 'completed';
         break;
 
       case 'collect_name':
@@ -84,13 +242,8 @@ export async function POST(req: NextRequest) {
 
       case 'collect_description':
         collectedData.description = text;
-        replyText = `Excellent! 🌟\n\n*Aapka WhatsApp number kya hai?*\n(Customers aapko is number pe contact karenge)\n\nFormat: +91XXXXXXXXXX`;
-        nextStep = 'collect_whatsapp';
-        break;
-
-      case 'collect_whatsapp':
-        collectedData.whatsapp = text;
-        replyText = `Almost done! ⚡\n\n*Website template choose karo:*\n\n1️⃣ *Minimal* - Clean & Elegant\n2️⃣ *Bold* - Vibrant & Energetic\n3️⃣ *Catalog* - Mobile Optimized\n\nReply with 1, 2, or 3`;
+        collectedData.whatsapp = phoneNumber;
+        replyText = `Excellent! 🌟\n\n*Website template choose karo:*\n\n1️⃣ *Minimal* - Clean & Elegant\n2️⃣ *Bold* - Vibrant & Energetic\n3️⃣ *Catalog* - Mobile Optimized\n\nReply with 1, 2, or 3`;
         nextStep = 'collect_template';
         break;
 
@@ -134,7 +287,7 @@ export async function POST(req: NextRequest) {
           replyText = `Great! 📝 Apne naye product ka *Naam* likho:`;
           nextStep = 'collect_product_name';
         } else {
-          replyText = `Aapka store ready hai! 🎉\n\nNaya store banana hai? Reply *RESET* likhke.`;
+          replyText = `Aapka store ready hai! 🎉\n\nMain Menu pe aane ke liye type: *RESET*.`;
           nextStep = 'completed';
         }
         break;
@@ -183,10 +336,10 @@ export async function POST(req: NextRequest) {
         break;
 
       case 'completed':
-        replyText = `Aapka store already ready hai! 🎉\n\nNaya store banana hai? Reply *RESET* likhke.`;
+        replyText = `Yeh task pura ho gaya hai. 🎉\n\nType *RESET* to go back.`;
         if (text.toUpperCase() === 'RESET') {
           nextStep = 'start';
-          replyText = `✅ Reset ho gaya!\n\n*Apni nayi dukaan ka naam batao:*`;
+          replyText = `✅ Piche aagaye! Type again if unresponsive.`;
         }
         break;
 
