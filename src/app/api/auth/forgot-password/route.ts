@@ -32,9 +32,12 @@ export async function POST(req: NextRequest) {
 
         let searchIdentifier = identifier.trim();
 
-        // Auto-prepend +91 for exactly 10 digit Indian phone numbers
+        // Auto-prepend +91 for 10 digit Indian phone numbers
         if (/^\d{10}$/.test(searchIdentifier)) {
             searchIdentifier = `+91${searchIdentifier}`;
+        } else if (/^\d{12}$/.test(searchIdentifier) && searchIdentifier.startsWith('91')) {
+            // Also handle if they type 91xxxxxxxxxx without the +
+            searchIdentifier = `+${searchIdentifier}`;
         }
 
         // Find the user by email or phone
@@ -42,7 +45,8 @@ export async function POST(req: NextRequest) {
             where: {
                 OR: [
                     { email: searchIdentifier },
-                    { phoneNumber: searchIdentifier }
+                    { phoneNumber: searchIdentifier },
+                    { phoneNumber: searchIdentifier.replace('+', '') }
                 ]
             }
         });
@@ -65,7 +69,7 @@ export async function POST(req: NextRequest) {
 
         // Generate secure token
         const token = crypto.randomBytes(32).toString('hex');
-        const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes from now
+        const expiresAt = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes from now
 
         // Save token
         await prisma.loginToken.create({
@@ -78,7 +82,7 @@ export async function POST(req: NextRequest) {
         });
 
         const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://dukaanhai.in';
-        const messageText = `🔒 *Password Reset Request*\n\nYou requested to reset your password for DukaanHai.\n\nClick this secure link to set a new password:\n\n${appUrl}/dashboard-access?token=${token}\n\nThis link expires in 10 minutes. If you didn't request this, ignore this message.`;
+        const messageText = `🔒 *Password Reset Request*\n\nYou requested to reset your password for DukaanHai.\n\nClick this secure link to set a new password:\n\n${appUrl}/dashboard-access?token=${token}\n\nThis link expires in 5 minutes. If you didn't request this, ignore this message.`;
 
         await sendWhatsAppMessage(user.phoneNumber, messageText);
 

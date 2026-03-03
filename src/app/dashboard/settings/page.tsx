@@ -2,6 +2,7 @@
 
 import { useSession, signOut } from 'next-auth/react';
 import { useState } from 'react';
+import ProfileSettings from './ProfileSettings';
 
 export default function SettingsPage() {
   const { data: session } = useSession();
@@ -16,19 +17,7 @@ export default function SettingsPage() {
       </div>
 
       {/* Account Info */}
-      <div className="card p-8">
-        <h2 className="font-bold text-surface-900 mb-6">Account Info</h2>
-        <div className="space-y-4">
-          <div>
-            <label className="label">Email</label>
-            <input value={session?.user?.email || ''} disabled className="input-field bg-surface-50 text-surface-500 cursor-not-allowed" />
-          </div>
-          <div>
-            <label className="label">Name</label>
-            <input value={session?.user?.name || ''} disabled className="input-field bg-surface-50 text-surface-500 cursor-not-allowed" />
-          </div>
-        </div>
-      </div>
+      <ProfileSettings />
 
       {/* Custom Domain */}
       <div className="card p-8">

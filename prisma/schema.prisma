@@ -15,8 +15,9 @@ model User {
   password    String?
   name        String?
   createdVia  String     @default("web")
-  createdAt   DateTime   @default(now())
-  businesses Business[]
+  createdAt        DateTime   @default(now())
+  businesses       Business[]
+  otpVerifications OtpVerification[]
 }
 
 model Business {
@@ -73,4 +74,16 @@ model LoginToken {
   expiresAt   DateTime
   used        Boolean  @default(false)
   createdAt   DateTime @default(now())
+}
+
+model OtpVerification {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      String   // "PHONE" or "EMAIL"
+  target    String   // The phone number (+91xxxx) or email address
+  code      String   // The 6-digit verification code
+  expiresAt DateTime
+  used      Boolean  @default(false)
+  createdAt DateTime @default(now())
 }

@@ -48,13 +48,76 @@ Keep the tone warm, local, and authentic. Use simple English that works for Indi
   }
 }
 
+export async function generateSeoHeadline(
+  business: { name: string; category: string; location: string; description: string },
+  variationSeed: number = 0
+): Promise<string> {
+  const variations = ['catchy and bold', 'warm and inviting', 'professional and trustworthy', 'fun and energetic'];
+  const tone = variations[variationSeed % variations.length];
+  const prompt = `You are an SEO copywriter for Indian local businesses.
+
+Write a ${tone} homepage headline for this store. It should be 8-12 words, SEO-friendly, and appeal to Indian customers.
+
+Store Name: ${business.name}
+Category: ${business.category}
+Location: ${business.location}
+Description: ${business.description}
+
+Return ONLY the headline text. No quotes, no punctuation at the end, no explanation.`;
+
+  try {
+    const result = await model.generateContent(prompt);
+    return result.response.text().trim().replace(/^["']|["']$/g, '');
+  } catch (error) {
+    console.error('Gemini headline error:', error);
+    return `Welcome to ${business.name} - Your Trusted ${business.category} Store`;
+  }
+}
+
+export async function generateSeoDescription(
+  business: { name: string; category: string; location: string; description: string },
+  variationSeed: number = 0
+): Promise<string> {
+  const angles = [
+    'focus on quality and trust',
+    'focus on the local community and personal service',
+    'focus on the best value and deals',
+    'focus on the story and passion behind the business',
+  ];
+  const angle = angles[variationSeed % angles.length];
+  const prompt = `You are an SEO copywriter for Indian local businesses.
+
+Write a 2-3 sentence SEO-friendly store description. ${angle}. Keep it warm, conversational, and appealing to Indian customers.
+
+Store Name: ${business.name}
+Category: ${business.category}
+Location: ${business.location}
+User's own description: ${business.description}
+
+Return ONLY the description text. No extra commentary.`;
+
+  try {
+    const result = await model.generateContent(prompt);
+    return result.response.text().trim();
+  } catch (error) {
+    console.error('Gemini description error:', error);
+    return `${business.name} is your go-to destination for ${business.category} in ${business.location}. We are committed to quality, great service, and making every customer feel at home.`;
+  }
+}
+
 export async function generateProductDescription(product: {
   name: string;
   price: number;
   businessName: string;
   category: string;
-}) {
-  const prompt = `Generate a compelling product description for an Indian local store product.
+}, variationSeed: number = 0): Promise<string> {
+  const angles = [
+    'focus on quality and appeal',
+    'focus on value for money',
+    'focus on who this product is perfect for',
+  ];
+  const angle = angles[variationSeed % angles.length];
+  const prompt = `Generate a compelling product description for an Indian local store product. ${angle}.
 
 Product Name: ${product.name}
 Price: ₹${product.price}

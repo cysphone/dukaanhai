@@ -24,6 +24,8 @@ export async function POST(req: NextRequest) {
     let formattedPhone = phone.trim();
     if (/^\d{10}$/.test(formattedPhone)) {
       formattedPhone = `+91${formattedPhone}`;
+    } else if (/^\d{12}$/.test(formattedPhone) && formattedPhone.startsWith('91')) {
+      formattedPhone = `+${formattedPhone}`;
     }
 
     // Check if phone number is already registered

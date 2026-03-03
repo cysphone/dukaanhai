@@ -51,19 +51,31 @@ export async function POST(req: NextRequest) {
 
         // 3. Find User
         const phoneNumber = loginToken.phoneNumber;
+        const email = loginToken.email;
 
-        // Fallback Dummy email to find them if they exist from the old flow
-        const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'dukaanhai.in';
-        const dummyEmail = `wa_${phoneNumber.replace('+', '')}@${rootDomain}`;
+        let user;
 
-        let user = await prisma.user.findFirst({
-            where: {
-                OR: [
-                    { phoneNumber },
-                    { email: dummyEmail }
-                ]
-            }
-        });
+        if (phoneNumber) {
+            // Fallback Dummy email to find them if they exist from the old flow
+            const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'dukaanhai.in';
+            const dummyEmail = `wa_${phoneNumber.replace('+', '')}@${rootDomain}`;
+
+            user = await prisma.user.findFirst({
+                where: {
+                    OR: [
+                        { phoneNumber },
+                        { phoneNumber: phoneNumber.replace('+', '') },
+                        { email: dummyEmail }
+                    ]
+                }
+            });
+        } else if (email) {
+            user = await prisma.user.findFirst({
+                where: {
+                    email
+                }
+            });
+        }
 
         if (user) {
             // Update existing user with phone number mapping and new password
@@ -77,21 +89,35 @@ export async function POST(req: NextRequest) {
             });
         } else {
             // Very Edge Case: Token exists but no User (e.g. data wipe)
-            user = await prisma.user.create({
-                data: {
-                    phoneNumber: phoneNumber,
-                    email: dummyEmail,
-                    password: hashedPassword,
-                    createdVia: "whatsapp",
-                    name: "WhatsApp User"
-                }
-            });
+            if (phoneNumber) {
+                user = await prisma.user.create({
+                    data: {
+                        phoneNumber: phoneNumber,
+                        email: `wa_${phoneNumber.replace('+', '')}@${process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'dukaanhai.in'}`,
+                        password: hashedPassword,
+                        createdVia: "whatsapp",
+                        name: "WhatsApp User"
+                    }
+                });
+            } else if (email) {
+                user = await prisma.user.create({
+                    data: {
+                        email: email,
+                        password: hashedPassword,
+                        createdVia: "web",
+                        name: "Web User"
+                    }
+                });
+            }
         }
 
-        // 4. Invalidate Token
+        // 4. Invalidate Token immediately
         await prisma.loginToken.update({
             where: { id: loginToken.id },
-            data: { used: true }
+            data: {
+                used: true,
+                expiresAt: new Date() // Expire immediately
+            }
         });
 
         return NextResponse.json({ success: true, message: "Password set successfully" }, { status: 200 });
