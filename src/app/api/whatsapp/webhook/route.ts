@@ -124,7 +124,12 @@ export async function POST(req: NextRequest) {
     // Detect Returning Users
     if (session.step === 'start') {
       const existingUser = await prisma.user.findFirst({
-        where: { email: dummyEmail },
+        where: {
+          OR: [
+            { email: dummyEmail },
+            { phoneNumber },
+          ]
+        },
         include: { businesses: true }
       });
       const existingBusiness = existingUser?.businesses?.[0];
@@ -139,6 +144,14 @@ export async function POST(req: NextRequest) {
           await sendWhatsAppMessage(phoneNumber, replyText);
           return NextResponse.json({ status: 'ok' });
         }
+      } else if (existingUser) {
+        // User exists but has no store yet — continue with store creation
+        session = await prisma.whatsappSession.update({
+          where: { phoneNumber },
+          data: { step: 'collect_name', collectedData: {} }
+        });
+        await sendWhatsAppMessage(phoneNumber, `Welcome back! 👋 You don't have a store yet.\n\n*Please enter your store name:*`);
+        return NextResponse.json({ status: 'ok' });
       }
     }
 
@@ -280,11 +293,19 @@ export async function POST(req: NextRequest) {
         break;
       }
 
-      case 'collect_name':
+      case 'collect_name': {
+        const candidateSlug = generateSlug(text);
+        const slugExists = await prisma.business.findUnique({ where: { slug: candidateSlug } });
+        if (slugExists) {
+          replyText = `⚠️ Sorry, the store name *"${text}"* is already taken.\n\nPlease try a different or more unique store name:`;
+          nextStep = 'collect_name';
+          break;
+        }
         collectedData.name = text;
         replyText = `Wow! *${text}* - that's a great name! 🎉\n\n*What do you sell?* (Enter Category)\n\nExamples: Groceries, Fashion, Food, Electronics, Handicrafts, etc.`;
         nextStep = 'collect_category';
         break;
+      }
 
       case 'collect_category':
         collectedData.category = text;
