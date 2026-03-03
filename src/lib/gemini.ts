@@ -144,3 +144,51 @@ export async function generateSlugSuggestion(name: string): Promise<string> {
     .trim();
   return base;
 }
+
+/**
+ * Generates a professional product placement image from a user's uploaded photo.
+ * Uses Gemini image generation to remove background and place the product on
+ * a clean white/neutral gradient studio background.
+ * Returns the generated image as a Buffer (JPEG/PNG).
+ */
+export async function generateProductImage(
+  imageBuffer: Buffer,
+  productName: string
+): Promise<Buffer> {
+  const imageGenModel = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!).getGenerativeModel({
+    model: 'gemini-3.1-flash-image-preview',
+  });
+
+  const base64Image = imageBuffer.toString('base64');
+
+  const prompt = `You are a professional product photographer. Take this product image of "${productName}" and:
+1. Remove the existing background completely
+2. Place the product on a clean, bright white studio background with a very soft shadow underneath
+3. Make it look like a professional e-commerce product photo
+4. Keep the product exactly as-is, only enhance the background and lighting
+5. Output a high-quality product image suitable for an online store
+
+Return only the enhanced product image.`;
+
+  const result = await imageGenModel.generateContent([
+    {
+      inlineData: {
+        mimeType: 'image/jpeg',
+        data: base64Image,
+      },
+    },
+    { text: prompt },
+  ]);
+
+  const response = result.response;
+  const parts = response.candidates?.[0]?.content?.parts ?? [];
+
+  for (const part of parts) {
+    if (part.inlineData?.data) {
+      return Buffer.from(part.inlineData.data, 'base64');
+    }
+  }
+
+  throw new Error('Gemini did not return an image in the response');
+}
+

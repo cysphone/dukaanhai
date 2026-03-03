@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { generateBusinessContent, generateSeoHeadline, generateSeoDescription, generateProductDescription } from '@/lib/gemini';
+import { generateBusinessContent, generateSeoHeadline, generateSeoDescription, generateProductDescription, generateProductImage } from '@/lib/gemini';
 import { generateSlug, getStoreUrl } from '@/lib/utils';
 import { uploadImageToCloudinary } from '@/lib/cloudinary';
 
@@ -186,8 +186,7 @@ export async function POST(req: NextRequest) {
           replyText = `You can only create and manage one site via WhatsApp.\n\nTo create a new site, please log in to the website:\n${appUrl}/login\n\nType *MENU* to go back to the menu.`;
           nextStep = 'handle_menu_choice';
         } else if (text === '5') {
-          const appDomain = process.env.NEXT_PUBLIC_APP_URL || 'https://dukaanhai.in';
-          replyText = `🎨 *Select a new template for your website:*\n\n1️⃣ *Minimal* - Clean & Elegant\n🔗 Demo: ${appDomain}/demo/minimal\n\n2️⃣ *Bold* - Vibrant & Energetic\n🔗 Demo: ${appDomain}/demo/bold\n\n3️⃣ *Catalog* - Mobile Optimized\n🔗 Demo: ${appDomain}/demo/catalog\n\nReply with 1, 2, or 3`;
+          replyText = `🎨 *Select a new template for your website:*\n\n1️⃣ *Minimal* — Clean & Elegant\n2️⃣ *Bold* — Vibrant & Energetic\n3️⃣ *Catalog* — Mobile Optimized\n4️⃣ *Elegant* — Luxurious & Refined\n5️⃣ *Futuristic* — Modern & Tech-Savvy\n6️⃣ *Playful* — Fun & Colorful\n\nReply with 1, 2, 3, 4, 5, or 6`;
           nextStep = 'save_website_template';
         } else {
           replyText = `Please reply with 1, 2, 3, 4, or 5.\n\n1️⃣ Edit Store Description\n2️⃣ Add New Product\n3️⃣ Edit Existing Product\n4️⃣ Create New Site\n5️⃣ Edit Website Template`;
@@ -196,7 +195,7 @@ export async function POST(req: NextRequest) {
         break;
 
       case 'save_website_template': {
-        const templates: Record<string, string> = { '1': 'minimal', '2': 'bold', '3': 'catalog' };
+        const templates: Record<string, string> = { '1': 'minimal', '2': 'bold', '3': 'catalog', '4': 'elegant', '5': 'futuristic', '6': 'playful' };
         if (templates[text]) {
           await prisma.business.update({
             where: { id: collectedData.businessId },
@@ -205,7 +204,7 @@ export async function POST(req: NextRequest) {
           replyText = `✅ Website template successfully updated to *${templates[text]}*!\n\nType *MENU* to return to the main menu.`;
           nextStep = 'completed';
         } else {
-          replyText = `Please reply with 1, 2, or 3.`;
+          replyText = `Please reply with 1, 2, 3, 4, 5, or 6.`;
           nextStep = 'save_website_template';
         }
         break;
@@ -465,8 +464,7 @@ export async function POST(req: NextRequest) {
         if (upperText === 'YES') {
           const accepted = collectedData.aiGenerations.desc[collectedData.aiGenerations.desc.length - 1];
           collectedData.description = accepted;
-          const appDomain = process.env.NEXT_PUBLIC_APP_URL || 'https://dukaanhai.in';
-          replyText = `✅ Description saved!\n\n*Please choose a website template:*\n\n1️⃣ *Minimal* - Clean & Elegant\n🔗 Demo: ${appDomain}/demo/minimal\n\n2️⃣ *Bold* - Vibrant & Energetic\n🔗 Demo: ${appDomain}/demo/bold\n\n3️⃣ *Catalog* - Mobile Optimized\n🔗 Demo: ${appDomain}/demo/catalog\n\nReply with 1, 2, or 3`;
+          replyText = `✅ Description saved!\n\n*Please choose a website template:*\n\n1️⃣ *Minimal* — Clean & Elegant\n2️⃣ *Bold* — Vibrant & Energetic\n3️⃣ *Catalog* — Mobile Optimized\n4️⃣ *Elegant* — Luxurious & Refined\n5️⃣ *Futuristic* — Modern & Tech-Savvy\n6️⃣ *Playful* — Fun & Colorful\n\nReply with 1, 2, 3, 4, 5, or 6`;
           nextStep = 'collect_template';
         } else if (upperText === 'REGENERATE') {
           if (collectedData.aiCredits.desc <= 0) {
@@ -515,16 +513,14 @@ export async function POST(req: NextRequest) {
         } else {
           collectedData.description = text;
         }
-        const appDomain = process.env.NEXT_PUBLIC_APP_URL || 'https://dukaanhai.in';
-        replyText = `✅ Description saved!\n\n*Please choose a website template:*\n\n1️⃣ *Minimal* - Clean & Elegant\n🔗 Demo: ${appDomain}/demo/minimal\n\n2️⃣ *Bold* - Vibrant & Energetic\n🔗 Demo: ${appDomain}/demo/bold\n\n3️⃣ *Catalog* - Mobile Optimized\n🔗 Demo: ${appDomain}/demo/catalog\n\nReply with 1, 2, or 3`;
+        replyText = `✅ Description saved!\n\n*Please choose a website template:*\n\n1️⃣ *Minimal* — Clean & Elegant\n2️⃣ *Bold* — Vibrant & Energetic\n3️⃣ *Catalog* — Mobile Optimized\n4️⃣ *Elegant* — Luxurious & Refined\n5️⃣ *Futuristic* — Modern & Tech-Savvy\n6️⃣ *Playful* — Fun & Colorful\n\nReply with 1, 2, 3, 4, 5, or 6`;
         nextStep = 'collect_template';
         break;
       }
 
       case 'collect_own_desc': {
         collectedData.description = text;
-        const appDomain = process.env.NEXT_PUBLIC_APP_URL || 'https://dukaanhai.in';
-        replyText = `✅ Description saved!\n\n*Please choose a website template:*\n\n1️⃣ *Minimal* - Clean & Elegant\n🔗 Demo: ${appDomain}/demo/minimal\n\n2️⃣ *Bold* - Vibrant & Energetic\n🔗 Demo: ${appDomain}/demo/bold\n\n3️⃣ *Catalog* - Mobile Optimized\n🔗 Demo: ${appDomain}/demo/catalog\n\nReply with 1, 2, or 3`;
+        replyText = `✅ Description saved!\n\n*Please choose a website template:*\n\n1️⃣ *Minimal* — Clean & Elegant\n2️⃣ *Bold* — Vibrant & Energetic\n3️⃣ *Catalog* — Mobile Optimized\n4️⃣ *Elegant* — Luxurious & Refined\n5️⃣ *Futuristic* — Modern & Tech-Savvy\n6️⃣ *Playful* — Fun & Colorful\n\nReply with 1, 2, 3, 4, 5, or 6`;
         nextStep = 'collect_template';
         break;
       }
@@ -532,7 +528,7 @@ export async function POST(req: NextRequest) {
       // ─────────────── TEMPLATE & BUSINESS CREATION ───────────────
 
       case 'collect_template': {
-        const templateMap: Record<string, string> = { '1': 'minimal', '2': 'bold', '3': 'catalog' };
+        const templateMap: Record<string, string> = { '1': 'minimal', '2': 'bold', '3': 'catalog', '4': 'elegant', '5': 'futuristic', '6': 'playful' };
         collectedData.template = templateMap[text] || 'minimal';
 
         replyText = `🤖 *AI is building your store...*\n\n✅ Creating business profile\n✅ Applying your headline & description\n✅ Preparing your website\n\nPlease wait a moment! ⏳`;
@@ -726,11 +722,60 @@ export async function POST(req: NextRequest) {
           replyText = `Please send an actual *Photo (Image)*, not text. 📸`;
           nextStep = 'collect_product_image';
         } else {
-          replyText = `⏳ Adding product...\nPlease wait a moment.`;
-          nextStep = 'adding_product';
+          // Download and store the image buffer for potential AI enhancement
+          replyText = `📸 Got it! One moment...`;
+          nextStep = 'ask_ai_image';
 
-          // Async product creation
-          handleAddProduct(phoneNumber, Object.assign({}, collectedData), message).catch(console.error);
+          // Prefetch image buffer async then ask about AI
+          handlePrefetchAndAskAI(phoneNumber, Object.assign({}, collectedData), message, (session as any).imageGenCredits ?? 3).catch(console.error);
+        }
+        break;
+      }
+
+      case 'ask_ai_image': {
+        const upperText = text.toUpperCase();
+        if (upperText === 'YES' || upperText === '1') {
+          // Kick off AI image generation
+          await sendWhatsAppMessage(phoneNumber, `🤖 *Generating your professional product image...*\n\nThis may take 15-30 seconds. Please wait! ⏳`);
+          await prisma.whatsappSession.update({
+            where: { phoneNumber },
+            data: { step: 'ai_image_pending', imageGenCredits: ((session as any).imageGenCredits ?? 3) - 1 } as any,
+          });
+          handleAiImage(phoneNumber, Object.assign({}, collectedData)).catch(async (e) => {
+            console.error('AI image error:', e);
+            await sendWhatsAppMessage(phoneNumber, `❌ AI image generation failed. Using your original image instead.\n\nAdding product...`);
+            await handleAddProductFromBuffer(phoneNumber, Object.assign({}, collectedData));
+          });
+          return NextResponse.json({ status: 'ok' });
+        } else if (upperText === 'NO' || upperText === '2') {
+          // Use original image
+          replyText = `✅ Using your original image.\n\n⏳ Adding product...`;
+          nextStep = 'adding_product';
+          handleAddProductFromBuffer(phoneNumber, Object.assign({}, collectedData)).catch(console.error);
+        } else {
+          const creditsLeft = (session as any).imageGenCredits ?? 3;
+          replyText = `Please reply:\n1️⃣ *YES* - Generate AI image (${creditsLeft} credit${creditsLeft !== 1 ? 's' : ''} left)\n2️⃣ *NO* - Use my original photo`;
+          nextStep = 'ask_ai_image';
+        }
+        break;
+      }
+
+      case 'ai_image_pending': {
+        const upperText = text.toUpperCase();
+        if (upperText === 'YES' || upperText === '1') {
+          // Use the AI-generated image URL already stored
+          replyText = `✅ AI image accepted! Adding your product...`;
+          nextStep = 'adding_product';
+          collectedData.useAiImage = true;
+          handleAddProductFromBuffer(phoneNumber, Object.assign({}, collectedData)).catch(console.error);
+        } else if (upperText === 'NO' || upperText === '2') {
+          replyText = `✅ Using your original image instead. Adding product...`;
+          nextStep = 'adding_product';
+          collectedData.useAiImage = false;
+          handleAddProductFromBuffer(phoneNumber, Object.assign({}, collectedData)).catch(console.error);
+        } else {
+          replyText = `Please reply:\n1️⃣ *YES* - Use AI image\n2️⃣ *NO* - Use original photo`;
+          nextStep = 'ai_image_pending';
         }
         break;
       }
@@ -810,27 +855,22 @@ async function createBusinessFromWhatsApp(phoneNumber: string, data: any): Promi
   const existing = await prisma.business.findUnique({ where: { slug } });
   if (existing) slug = `${slug}-${Date.now().toString(36)}`;
 
-  // Use the user-selected/AI headline & description if available, otherwise fall back to auto-generate
-  let headline = data.headline || null;
-  let description = data.description || null;
-  let tagline: string | null = null;
-  let about: string | null = null;
-  let marketingDesc: string | null = null;
+  // Always generate full AI content for story/tagline/mission/vision fields
+  // User-provided headline & description take priority over AI ones
+  const aiContent = await generateBusinessContent({
+    name: data.name,
+    description: data.description || '',
+    category: data.category || 'General',
+    location: data.location || 'India',
+  });
 
-  if (!headline || !description) {
-    // Fallback: auto-generate all content
-    const aiContent = await generateBusinessContent({
-      name: data.name,
-      description: data.description || '',
-      category: data.category || 'General',
-      location: data.location || 'India',
-    });
-    headline = headline || aiContent.headline;
-    description = description || aiContent.marketingDesc;
-    tagline = aiContent.tagline;
-    about = aiContent.about;
-    marketingDesc = aiContent.marketingDesc;
-  }
+  const headline = data.headline || aiContent.headline;
+  const description = data.description || aiContent.marketingDesc;
+  const tagline: string | null = aiContent.tagline || null;
+  const about: string | null = aiContent.about || null;
+  const vision: string | null = aiContent.vision || null;
+  const mission: string | null = aiContent.mission || null;
+  const marketingDesc: string | null = aiContent.marketingDesc || null;
 
   const business = await prisma.business.create({
     data: {
@@ -845,6 +885,8 @@ async function createBusinessFromWhatsApp(phoneNumber: string, data: any): Promi
       headline,
       tagline,
       about,
+      vision,
+      mission,
       marketingDesc,
     },
   });
@@ -894,6 +936,161 @@ async function handleAddProduct(phoneNumber: string, data: any, message: any) {
   } catch (error) {
     console.error('Error adding product:', error);
     await sendWhatsAppMessage(phoneNumber, `❌ Failed to add product. Please try again later.\n\nWould you like to try adding another product? Reply *YES* or *NO*.`);
+    await prisma.whatsappSession.update({
+      where: { phoneNumber },
+      data: { step: 'ask_add_product', collectedData: { businessId: data.businessId } },
+    });
+  }
+}
+
+// ─── AI Image Enhancement Helpers ─────────────────────────────────────────
+
+async function sendWhatsAppImageMessage(to: string, imageUrl: string, caption: string) {
+  const url = `https://graph.facebook.com/v20.0/${PHONE_ID}/messages`;
+  await fetch(url, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${WA_TOKEN}`,
+    },
+    body: JSON.stringify({
+      messaging_product: 'whatsapp',
+      to,
+      type: 'image',
+      image: { link: imageUrl, caption },
+    }),
+  });
+}
+
+/**
+ * Downloads the image from WhatsApp, stores the raw buffer as base64 in the session,
+ * then sends the user the AI enhancement offer with credit count.
+ */
+async function handlePrefetchAndAskAI(
+  phoneNumber: string,
+  data: any,
+  message: any,
+  imageGenCredits: number
+) {
+  try {
+    const image = message.image;
+    if (!image?.id) throw new Error('No image ID');
+
+    // Download image from WhatsApp
+    const waMediaUrl = `https://graph.facebook.com/v20.0/${image.id}`;
+    const mediaRes = await fetch(waMediaUrl, { headers: { Authorization: `Bearer ${WA_TOKEN}` } });
+    const mediaData = await mediaRes.json();
+
+    if (!mediaData.url) throw new Error('Could not get media URL');
+
+    const imageRes = await fetch(mediaData.url, { headers: { Authorization: `Bearer ${WA_TOKEN}` } });
+    const arrayBuffer = await imageRes.arrayBuffer();
+    const rawBuffer = Buffer.from(arrayBuffer);
+
+    // Store base64 buffer in collected data
+    data.rawImageBase64 = rawBuffer.toString('base64');
+
+    await prisma.whatsappSession.update({
+      where: { phoneNumber },
+      data: { step: 'ask_ai_image', collectedData: data },
+    });
+
+    if (imageGenCredits > 0) {
+      await sendWhatsAppMessage(
+        phoneNumber,
+        `✅ Photo received!\n\n🤖 *Want AI to enhance it?*\n\nI can remove the background and create a professional studio-quality product photo.\n\n🎨 *${imageGenCredits} AI image credit${imageGenCredits !== 1 ? 's' : ''} remaining*\n\n1️⃣ *YES* - Generate AI image\n2️⃣ *NO* - Use my original photo`
+      );
+    } else {
+      // No credits — skip to product creation with original
+      await sendWhatsAppMessage(phoneNumber, `✅ Photo received! (No AI credits remaining)\n\n⏳ Adding your product...`);
+      await handleAddProductFromBuffer(phoneNumber, data);
+    }
+  } catch (error) {
+    console.error('handlePrefetchAndAskAI error:', error);
+    await sendWhatsAppMessage(phoneNumber, `❌ Could not process your image. Please try sending it again.`);
+    await prisma.whatsappSession.update({
+      where: { phoneNumber },
+      data: { step: 'collect_product_image', collectedData: data },
+    });
+  }
+}
+
+/**
+ * Generates the AI-enhanced product image and sends it back to the user for approval.
+ */
+async function handleAiImage(phoneNumber: string, data: any) {
+  try {
+    if (!data.rawImageBase64) throw new Error('No raw image stored');
+
+    const rawBuffer = Buffer.from(data.rawImageBase64, 'base64');
+
+    // Generate professional product image
+    const aiBuffer = await generateProductImage(rawBuffer, data.productName || 'Product');
+
+    // Upload AI image to Cloudinary as preview
+    const aiImageUrl = await uploadImageToCloudinary(aiBuffer, `dukaanhai/ai-previews/${data.businessId}`);
+
+    // Store AI image URL in session
+    data.aiImageUrl = aiImageUrl;
+    await prisma.whatsappSession.update({
+      where: { phoneNumber },
+      data: { step: 'ai_image_pending', collectedData: data },
+    });
+
+    // Send AI image via WhatsApp
+    await sendWhatsAppImageMessage(
+      phoneNumber,
+      aiImageUrl,
+      `✨ Here's your AI-enhanced product photo!\n\nReply:\n1️⃣ *YES* - Use this image\n2️⃣ *NO* - Use my original photo`
+    );
+  } catch (error) {
+    console.error('handleAiImage error:', error);
+    // Restore credit since generation failed
+    await prisma.whatsappSession.update({
+      where: { phoneNumber },
+      data: {
+        imageGenCredits: { increment: 1 },
+      } as any,
+    });
+    throw error; // Propagates to the catch in the caller
+  }
+}
+
+/**
+ * Creates the product using either the AI image URL or the original raw buffer.
+ */
+async function handleAddProductFromBuffer(phoneNumber: string, data: any) {
+  try {
+    let imageUrl = '';
+
+    if (data.useAiImage && data.aiImageUrl) {
+      // Use already-uploaded AI image
+      imageUrl = data.aiImageUrl;
+    } else if (data.rawImageBase64) {
+      // Upload original image from stored buffer
+      const rawBuffer = Buffer.from(data.rawImageBase64, 'base64');
+      imageUrl = await uploadImageToCloudinary(rawBuffer, `dukaanhai/products/${data.businessId}`);
+    }
+
+    await prisma.product.create({
+      data: {
+        businessId: data.businessId,
+        name: data.productName,
+        price: data.productPrice,
+        description: data.productDesc,
+        imageUrl: imageUrl || null,
+        inStock: true,
+      },
+    });
+
+    await sendWhatsAppMessage(phoneNumber, `✅ Product added successfully!\n\nWould you like to add another product? Reply *YES* or *NO*.`);
+    await prisma.whatsappSession.update({
+      where: { phoneNumber },
+      data: { step: 'ask_add_product', collectedData: { businessId: data.businessId } },
+    });
+  } catch (error) {
+    console.error('handleAddProductFromBuffer error:', error);
+    await sendWhatsAppMessage(phoneNumber, `❌ Failed to add product. Please try again.\n\nReply *YES* to try again or *NO* to skip.`);
     await prisma.whatsappSession.update({
       where: { phoneNumber },
       data: { step: 'ask_add_product', collectedData: { businessId: data.businessId } },

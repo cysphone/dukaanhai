@@ -59,11 +59,12 @@ model Product {
 }
 
 model WhatsappSession {
-  id            String   @id @default(cuid())
-  phoneNumber   String   @unique
-  step          String   @default("start")
-  collectedData Json     @default("{}")
-  updatedAt     DateTime @updatedAt
+  id               String   @id @default(cuid())
+  phoneNumber      String   @unique
+  step             String   @default("start")
+  collectedData    Json     @default("{}")
+  imageGenCredits  Int      @default(3)
+  updatedAt        DateTime @updatedAt
 }
 
 model LoginToken {

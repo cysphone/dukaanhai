@@ -33,16 +33,16 @@ export function getStoreUrl(slug: string): string {
   const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'dukaanhai.in';
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || '';
 
-  // Use subdomain format only when the app is running on the actual root domain
-  // (i.e. NEXT_PUBLIC_APP_URL ends with the root domain).
-  // On ngrok, localhost, or any other tunnel — use path-based URLs.
-  const isRootDomain = appUrl.replace(/https?:\/\//, '').replace(/\/$/, '') === rootDomain;
+  // Use path-based URLs in development OR when the app is tunneled (ngrok, etc.)
+  // Use subdomain-based URLs only on actual production domain (dukaanhai.in)
+  const isDev = process.env.NODE_ENV === 'development';
+  const isNgrokOrTunnel = appUrl.includes('ngrok') || appUrl.includes('tunnel') || appUrl.includes('localhost');
 
-  if (isRootDomain) {
-    return `https://${slug}.${rootDomain}`;
+  if (isDev || isNgrokOrTunnel) {
+    return `${getBaseUrl()}/store/${slug}`;
   }
 
-  return `${getBaseUrl()}/store/${slug}`;
+  return `https://${slug}.${rootDomain}`;
 }
 
 export function truncate(str: string, length: number): string {
