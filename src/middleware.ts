@@ -8,8 +8,9 @@ export function middleware(request: NextRequest) {
   // Skip for localhost and direct paths
   const isLocalhost = hostname.includes('localhost') || hostname.includes('127.0.0.1');
   const isVercel = hostname.includes('vercel.app');
+  const isNgrokOrTunnel = hostname.includes('ngrok') || hostname.includes('tunnel');
 
-  if (isLocalhost || isVercel) {
+  if (isLocalhost || isVercel || isNgrokOrTunnel) {
     return NextResponse.next();
   }
 

@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation';
 import { prisma } from '@/lib/prisma';
-import { formatPrice } from '@/lib/utils';
+import { formatPrice, getProductUrl, getStorePath } from '@/lib/utils';
 import Link from 'next/link';
 
 interface ProductPageProps {
@@ -57,11 +57,11 @@ export default async function ProductPage({ params }: ProductPageProps) {
             {/* Navbar */}
             <header className="border-b border-zinc-200 sticky top-0 bg-white/80 backdrop-blur-md z-50">
                 <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
-                    <Link href={`/store/${business.slug}`} className="text-xl font-bold tracking-tight text-zinc-900 hover:text-brand-600 transition-colors">
+                    <Link href={getStorePath(business.slug)} className="text-xl font-bold tracking-tight text-zinc-900 hover:text-brand-600 transition-colors">
                         {business.name}
                     </Link>
                     <div className="flex items-center gap-4">
-                        <Link href={`/store/${business.slug}`} className="text-sm font-medium text-zinc-600 hover:text-zinc-900 transition-colors">
+                        <Link href={getStorePath(business.slug)} className="text-sm font-medium text-zinc-600 hover:text-zinc-900 transition-colors">
                             Back to Store
                         </Link>
                     </div>
@@ -94,7 +94,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
 
                     {/* Details */}
                     <div className="flex flex-col h-full justify-center">
-                        <Link href={`/store/${business.slug}`} className="inline-flex items-center text-sm font-bold text-brand-600 hover:text-brand-700 transition-colors mb-4">
+                        <Link href={getStorePath(business.slug)} className="inline-flex items-center text-sm font-bold text-brand-600 hover:text-brand-700 transition-colors mb-4">
                             ← {business.name}
                         </Link>
                         <h1 className="text-4xl md:text-5xl font-black text-zinc-900 tracking-tight leading-tight mb-4">
@@ -156,7 +156,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
                             </h2>
                             <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
                                 {relatedProducts.map(rp => (
-                                    <Link key={rp.id} href={`/store/${business.slug}/product/${rp.id}`} className="group relative block bg-white border border-zinc-200 rounded-2xl overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+                                    <Link key={rp.id} href={getProductUrl(business.slug, rp.id)} className="group relative block bg-white border border-zinc-200 rounded-2xl overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
                                         <div className="aspect-square bg-zinc-100 overflow-hidden relative">
                                             {rp.imageUrl ? (
                                                 <img
@@ -189,7 +189,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
             {/* Footer */}
             <footer className="border-t border-zinc-200 bg-white py-12">
                 <div className="max-w-6xl mx-auto px-6 text-center">
-                    <Link href={`/store/${business.slug}`} className="text-xl font-bold tracking-tight text-zinc-900 block mb-4">
+                    <Link href={getStorePath(business.slug)} className="text-xl font-bold tracking-tight text-zinc-900 block mb-4">
                         {business.name}
                     </Link>
                     <p className="text-zinc-500 text-sm mb-6 max-w-md mx-auto">

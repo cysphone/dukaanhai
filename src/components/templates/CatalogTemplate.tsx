@@ -1,6 +1,6 @@
 'use client';
 
-import { formatPrice } from '@/lib/utils';
+import { formatPrice, getProductUrl } from '@/lib/utils';
 
 interface TemplateProps {
   business: {
@@ -129,7 +129,7 @@ export default function CatalogTemplate({ business, products }: TemplateProps) {
                       <span className="text-emerald-600 font-extrabold text-lg">{formatPrice(product.price)}</span>
                       <div className="flex gap-2">
                         <a
-                          href={`/store/${business.slug}/product/${product.id}`}
+                          href={getProductUrl(business.slug, product.id)}
                           className="bg-white border border-gray-200 text-gray-700 text-xs font-bold px-3 py-1.5 rounded-lg hover:bg-gray-50 transition-all shadow-sm"
                         >
                           View

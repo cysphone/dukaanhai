@@ -156,7 +156,7 @@ export async function generateProductImage(
   productName: string
 ): Promise<Buffer> {
   const imageGenModel = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!).getGenerativeModel({
-    model: 'gemini-3.1-flash-image-preview',
+    model: 'gemini-3-pro-image-preview',
   });
 
   const base64Image = imageBuffer.toString('base64');

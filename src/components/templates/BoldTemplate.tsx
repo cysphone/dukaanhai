@@ -1,6 +1,6 @@
 'use client';
 
-import { formatPrice } from '@/lib/utils';
+import { formatPrice, getProductUrl } from '@/lib/utils';
 
 interface TemplateProps {
   business: {
@@ -124,7 +124,7 @@ export default function BoldTemplate({ business, products }: TemplateProps) {
                   <div className="flex items-center justify-between mt-auto">
                     <span className="bold-display text-2xl text-orange-400">{formatPrice(product.price)}</span>
                     <a
-                      href={`/store/${business.slug}/product/${product.id}`}
+                      href={getProductUrl(business.slug, product.id)}
                       className="bold-body bg-zinc-800 hover:bg-zinc-700 text-white text-xs font-semibold px-4 py-2 rounded-xl transition-all"
                     >
                       View Details

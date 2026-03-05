@@ -1,6 +1,6 @@
 'use client';
 
-import { formatPrice } from '@/lib/utils';
+import { formatPrice, getProductUrl } from '@/lib/utils';
 
 interface TemplateProps {
     business: {
@@ -166,7 +166,7 @@ export default function ElegantTemplate({ business, products }: TemplateProps) {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-24">
                         {products.map((product, index) => (
                             <div key={product.id} className={`group fade-in-up delay-${(index % 2) * 100}`}>
-                                <a href={`/store/${business.slug}/product/${product.id}`} className="block relative overflow-hidden mb-8 aspect-[3/4] bg-[#F5F2EA]">
+                                <a href={getProductUrl(business.slug, product.id)} className="block relative overflow-hidden mb-8 aspect-[3/4] bg-[#F5F2EA]">
                                     {product.imageUrl ? (
                                         <img
                                             src={product.imageUrl}
@@ -196,7 +196,7 @@ export default function ElegantTemplate({ business, products }: TemplateProps) {
                                             {formatPrice(product.price)}
                                         </span>
                                         <a
-                                            href={`/store/${business.slug}/product/${product.id}`}
+                                            href={getProductUrl(business.slug, product.id)}
                                             className="elegant-body text-[10px] uppercase tracking-[0.2em] border-b border-transparent hover:border-[#D4AF37] pb-1 transition-all text-[#6D6A66] hover:text-[#D4AF37]"
                                         >
                                             Discover More

@@ -3,7 +3,7 @@ import { PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
 
 async function main() {
-    const email = 'hasan@krstle.com'; // Trying to find a typical dev email if it exists
+    const email = 'zunnoorhassan@gmail.com'; // Trying to find a typical dev email if it exists
     const user = await prisma.user.findFirst({
         where: { email }
     });

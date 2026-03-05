@@ -31,19 +31,55 @@ export function getBaseUrl(): string {
 
 export function getStoreUrl(slug: string): string {
   const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'dukaanhai.in';
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL || '';
 
-  // Use path-based URLs in development OR when the app is tunneled (ngrok, etc.)
-  // Use subdomain-based URLs only on actual production domain (dukaanhai.in)
+  // Use path-based URLs if the root domain is a test/tunnel domain,
+  // or if we are explicitly in development mode.
   const isDev = process.env.NODE_ENV === 'development';
-  const isNgrokOrTunnel = appUrl.includes('ngrok') || appUrl.includes('tunnel') || appUrl.includes('localhost');
+  const isTestDomain = rootDomain.includes('ngrok') ||
+    rootDomain.includes('vercel.app') ||
+    rootDomain.includes('localhost') ||
+    rootDomain.includes('127.0.0.1');
 
-  if (isDev || isNgrokOrTunnel) {
+  if (isDev || isTestDomain) {
     return `${getBaseUrl()}/store/${slug}`;
   }
 
+  // Production / Custom domains
   return `https://${slug}.${rootDomain}`;
 }
+
+export function getProductUrl(slug: string, productId: string): string {
+  const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'dukaanhai.in';
+
+  const isDev = process.env.NODE_ENV === 'development';
+  const isTestDomain = rootDomain.includes('ngrok') ||
+    rootDomain.includes('vercel.app') ||
+    rootDomain.includes('localhost') ||
+    rootDomain.includes('127.0.0.1');
+
+  if (isDev || isTestDomain) {
+    return `/store/${slug}/product/${productId}`;
+  }
+
+  return `/product/${productId}`; // On a subdomain, we just use /product/[id]
+}
+
+export function getStorePath(slug: string): string {
+  const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'dukaanhai.in';
+
+  const isDev = process.env.NODE_ENV === 'development';
+  const isTestDomain = rootDomain.includes('ngrok') ||
+    rootDomain.includes('vercel.app') ||
+    rootDomain.includes('localhost') ||
+    rootDomain.includes('127.0.0.1');
+
+  if (isDev || isTestDomain) {
+    return `/store/${slug}`;
+  }
+
+  return `/`; // Root of the subdomain
+}
+
 
 export function truncate(str: string, length: number): string {
   if (str.length <= length) return str;

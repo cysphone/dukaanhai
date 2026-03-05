@@ -1,6 +1,6 @@
 'use client';
 
-import { formatPrice } from '@/lib/utils';
+import { formatPrice, getProductUrl } from '@/lib/utils';
 
 interface TemplateProps {
     business: {
@@ -193,7 +193,7 @@ export default function FuturisticTemplate({ business, products }: TemplateProps
                                         </div>
 
                                         <a
-                                            href={`/store/${business.slug}/product/${product.id}`}
+                                            href={getProductUrl(business.slug, product.id)}
                                             className="cyber-body uppercase tracking-wider text-xs border border-cyan-500/50 bg-cyan-950/50 text-cyan-400 hover:bg-cyan-400 hover:text-black hover:shadow-[0_0_15px_rgba(6,182,212,0.5)] px-4 py-2 transition-all duration-300"
                                         >
                                             INITIALIZE

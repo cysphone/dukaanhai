@@ -1,6 +1,6 @@
 'use client';
 
-import { formatPrice } from '@/lib/utils';
+import { formatPrice, getProductUrl } from '@/lib/utils';
 
 interface TemplateProps {
   business: {
@@ -113,7 +113,7 @@ export default function MinimalTemplate({ business, products }: TemplateProps) {
                   <div className="flex items-center justify-between mt-auto">
                     <span className="minimal-body font-semibold text-stone-900 text-lg">{formatPrice(product.price)}</span>
                     <a
-                      href={`/store/${business.slug}/product/${product.id}`}
+                      href={getProductUrl(business.slug, product.id)}
                       className="minimal-body text-xs bg-stone-100 text-stone-600 px-3 py-1.5 rounded-full hover:bg-stone-200 transition-all font-medium"
                     >
                       View

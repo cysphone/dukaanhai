@@ -1,6 +1,6 @@
 'use client';
 
-import { formatPrice } from '@/lib/utils';
+import { formatPrice, getProductUrl } from '@/lib/utils';
 
 interface TemplateProps {
     business: {
@@ -190,7 +190,7 @@ export default function PlayfulTemplate({ business, products }: TemplateProps) {
                                         )}
 
                                         <a
-                                            href={`/store/${business.slug}/product/${product.id}`}
+                                            href={getProductUrl(business.slug, product.id)}
                                             className="mt-auto w-full text-center playful-body font-black text-xl bg-[#2D3142] text-white py-4 rounded-xl hover:bg-[#FF6B6B] hover:-translate-y-1 transition-all duration-300"
                                         >
                                             Check it Out!
